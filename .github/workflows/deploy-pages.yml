@@ -1,8 +1,6 @@
 name: Deploy Arkhivum to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -24,15 +22,14 @@ jobs:
       - name: Unpack site source
         shell: bash
         run: |
-          base64 --decode arkhivum-site-source.b64 | tar -xJ
-          rm arkhivum-site-source.b64
+          cat source-parts/part-* | base64 --decode | tar -xJ
+          rm -rf source-parts
+          rm -f arkhivum-site-source.b64
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package.json
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
