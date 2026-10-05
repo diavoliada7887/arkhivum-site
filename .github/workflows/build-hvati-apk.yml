@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - hvati-apk-v1
+      - hvati-autonomous-v04
     paths:
       - 'hvati/**'
       - '.github/workflows/build-hvati-apk.yml'
@@ -27,6 +28,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - name: Gradle
         uses: gradle/actions/setup-gradle@v4
