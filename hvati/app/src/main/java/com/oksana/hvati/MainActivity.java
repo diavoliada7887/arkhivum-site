@@ -1,21 +1,16 @@
 package com.oksana.hvati;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -28,13 +23,10 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
-    private static final String TERMUX_PERMISSION = "com.termux.permission.RUN_COMMAND";
-    private static final int REQ_TERMUX_PERMISSION = 42;
-    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S+");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\\\S+");
 
     private EditText urlBox;
     private TextView status;
-    private String pendingMode = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +113,7 @@ public class MainActivity extends Activity {
         root.addView(setupTitle, setTitleLp);
 
         TextView setup = new TextView(this);
-        setup.setText("Termux должен разрешить внешние команды. Нажми кнопку ниже, вставь команду в Termux один раз и вернись сюда.");
+        setup.setText("Один раз обновим наш termux-url-opener, чтобы он понимал выбор качества из приложения.");
         setup.setTextSize(14);
         setup.setTextColor(Color.rgb(78, 82, 92));
         LinearLayout.LayoutParams setupLp = lp();
@@ -194,103 +186,61 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (checkSelfPermission(TERMUX_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            pendingMode = mode;
-            requestPermissions(new String[]{TERMUX_PERMISSION}, REQ_TERMUX_PERMISSION);
-            status.setText("Разреши приложению запускать команды в Termux.");
-            return;
-        }
+        String markedUrl = url + "#hvati=" + mode;
 
-        runYtDlp(mode, url);
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, markedUrl);
+        i.setComponent(new ComponentName(
+                "com.termux",
+                "com.termux.app.api.file.FileShareReceiverActivity"
+        ));
+
+        try {
+            startActivity(i);
+            status.setText("Передал в Termux. Смотри Downloads 😏");
+        } catch (Exception e) {
+            status.setText("Не получилось передать ссылку в Termux.");
+            Toast.makeText(this, "Termux не принял ссылку.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private boolean isTermuxInstalled() {
         try {
             getPackageManager().getPackageInfo("com.termux", 0);
             return true;
-        } catch (PackageManager.NameNotFoundException e) {
+        } catch (Exception e) {
             return false;
         }
     }
 
-    private void runYtDlp(String mode, String url) {
-        String format;
-        String[] args;
-
-        if ("mp3".equals(mode)) {
-            args = new String[]{
-                    "--no-playlist",
-                    "-P", "/data/data/com.termux/files/home/storage/downloads",
-                    "-x", "--audio-format", "mp3", "--audio-quality", "0",
-                    url
-            };
-        } else {
-            if ("480".equals(mode)) {
-                format = "bv*[height<=480]+ba/b[height<=480]/b";
-            } else if ("720".equals(mode)) {
-                format = "bv*[height<=720]+ba/b[height<=720]/b";
-            } else {
-                format = "bv*+ba/b";
-            }
-
-            args = new String[]{
-                    "--no-playlist",
-                    "-P", "/data/data/com.termux/files/home/storage/downloads",
-                    "-f", format,
-                    "--merge-output-format", "mp4",
-                    url
-            };
-        }
-
-        Intent i = new Intent();
-        i.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
-        i.setAction("com.termux.RUN_COMMAND");
-        i.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/yt-dlp");
-        i.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", args);
-        i.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        i.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-        i.putExtra("com.termux.RUN_COMMAND_LABEL", "Хвать");
-
-        try {
-            startService(i);
-            status.setText("Потащил. Смотри Downloads 😏");
-            Toast.makeText(this, "Скачивание отправлено в Termux", Toast.LENGTH_SHORT).show();
-        } catch (SecurityException e) {
-            status.setText("Android не дал доступ к Termux. Разреши «Запуск команд в Termux» в разрешениях приложения.");
-            openAppSettings();
-        } catch (Exception e) {
-            status.setText("Не вышло: " + e.getMessage());
-            Toast.makeText(this, "Termux ругнулся. Проверь настройку внешних команд.", Toast.LENGTH_LONG).show();
-        }
-    }
-
     private void copySetupCommand() {
-        String cmd = "mkdir -p ~/.termux && (grep -q '^allow-external-apps *= *true' ~/.termux/termux.properties 2>/dev/null || echo 'allow-external-apps = true' >> ~/.termux/termux.properties) && termux-reload-settings";
+        String cmd =
+                "mkdir -p ~/bin && printf '%s\\n' " +
+                "'#!/data/data/com.termux/files/usr/bin/bash' " +
+                "'arg=\"$1\"' " +
+                "'mode=\"480\"' " +
+                "'case \"$arg\" in' " +
+                "'  *#hvati=720) mode=\"720\" ;;' " +
+                "'  *#hvati=best) mode=\"best\" ;;' " +
+                "'  *#hvati=mp3) mode=\"mp3\" ;;' " +
+                "'  *#hvati=480) mode=\"480\" ;;' " +
+                "'esac' " +
+                "'url=\"${arg%%#hvati=*}\"' " +
+                "'cd \"$HOME/storage/downloads\" || exit 1' " +
+                "'case \"$mode\" in' " +
+                "'  mp3) exec yt-dlp --no-playlist -x --audio-format mp3 --audio-quality 0 \"$url\" ;;' " +
+                "'  720) exec yt-dlp --no-playlist -f \"bv*[height<=720]+ba/b[height<=720]/b\" --merge-output-format mp4 \"$url\" ;;' " +
+                "'  best) exec yt-dlp --no-playlist -f \"bv*+ba/b\" --merge-output-format mp4 \"$url\" ;;' " +
+                "'  *) exec yt-dlp --no-playlist -f \"bv*[height<=480]+ba/b[height<=480]/b\" --merge-output-format mp4 \"$url\" ;;' " +
+                "'esac' " +
+                "> ~/bin/termux-url-opener && chmod +x ~/bin/termux-url-opener";
+
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.setPrimaryClip(ClipData.newPlainText("Настройка Termux для Хвать", cmd));
-        Toast.makeText(this, "Скопировано. Вставь это в Termux.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Скопировано. Вставь команду в Termux один раз.", Toast.LENGTH_SHORT).show();
 
         Intent launch = getPackageManager().getLaunchIntentForPackage("com.termux");
         if (launch != null) startActivity(launch);
-    }
-
-    private void openAppSettings() {
-        Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        i.setData(Uri.parse("package:" + getPackageName()));
-        startActivity(i);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_TERMUX_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                String mode = pendingMode;
-                pendingMode = null;
-                if (mode != null) startDownload(mode);
-            } else {
-                status.setText("Без разрешения Termux я команды запускать не смогу.");
-            }
-        }
     }
 }
