@@ -46,6 +46,7 @@ public class DownloadService extends Service {
     public static final String ACTION_ENQUEUE = "com.oksana.hvati.ENQUEUE";
     public static final String ACTION_CANCEL = "com.oksana.hvati.CANCEL";
     public static final String ACTION_RETRY = "com.oksana.hvati.RETRY";
+    public static final String ACTION_REQUEST_STATE = "com.oksana.hvati.REQUEST_STATE";
 
     public static final String EVENT_PROGRESS = "com.oksana.hvati.EVENT_PROGRESS";
     public static final String EVENT_QUEUE = "com.oksana.hvati.EVENT_QUEUE";
@@ -108,6 +109,11 @@ public class DownloadService extends Service {
             return START_NOT_STICKY;
         }
 
+        if (ACTION_REQUEST_STATE.equals(action)) {
+            broadcastQueue();
+            return START_NOT_STICKY;
+        }
+
         if (ACTION_ENQUEUE.equals(action) || ACTION_RETRY.equals(action)) {
             String url = intent.getStringExtra(EXTRA_URL);
             String mode = intent.getStringExtra(EXTRA_MODE);
@@ -140,6 +146,15 @@ public class DownloadService extends Service {
             context.startForegroundService(intent);
         } else {
             context.startService(intent);
+        }
+    }
+
+    public static void requestState(Context context) {
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(ACTION_REQUEST_STATE);
+        try {
+            context.startService(intent);
+        } catch (Throwable ignored) {
         }
     }
 
