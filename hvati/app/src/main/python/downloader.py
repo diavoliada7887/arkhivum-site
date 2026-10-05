@@ -1,6 +1,8 @@
 import glob
+import hashlib
 import json
 import os
+import shutil
 import time
 
 from yt_dlp import YoutubeDL
@@ -13,6 +15,29 @@ def _write_progress(path, percent, stage, downloaded=0, total=0, speed=0, eta=-1
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(line)
     os.replace(tmp, path)
+
+
+def _session_dir(root, url, mode):
+    os.makedirs(root, exist_ok=True)
+    key = hashlib.sha256(f"{mode}|{url}".encode("utf-8")).hexdigest()[:18]
+    current = os.path.join(root, key)
+    os.makedirs(current, exist_ok=True)
+
+    cutoff = time.time() - 3 * 24 * 60 * 60
+    try:
+        for name in os.listdir(root):
+            path = os.path.join(root, name)
+            if path == current or not os.path.isdir(path):
+                continue
+            try:
+                if os.path.getmtime(path) < cutoff:
+                    shutil.rmtree(path, ignore_errors=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
+
+    return current
 
 
 def _hook(progress_path, stage, start_percent, end_percent):
@@ -73,38 +98,49 @@ def _base_opts(outtmpl, hook, is_youtube):
         "noplaylist": True,
         "quiet": True,
         "no_warnings": True,
-        "overwrites": True,
+        "overwrites": False,
+        "continuedl": True,
+        "nopart": False,
         "restrictfilenames": False,
         "progress_hooks": [hook],
+
+        # v0.8: large downloads should survive temporary network/server drops.
+        "retries": 20,
+        "fragment_retries": 30,
+        "extractor_retries": 5,
+        "file_access_retries": 5,
+        "socket_timeout": 45,
+        "concurrent_fragment_downloads": 4,
+        "buffersize": 1024 * 1024,
     }
+
     if is_youtube:
         opts["extractor_args"] = {
             "youtube": {
                 "player_client": ["android"],
             }
         }
+
     return opts
 
 
 def _existing_file(prepared, pattern):
     if prepared and os.path.exists(prepared):
         return prepared
-    files = [p for p in glob.glob(pattern) if os.path.isfile(p)]
+
+    files = [
+        p for p in glob.glob(pattern)
+        if os.path.isfile(p) and not p.endswith((".part", ".ytdl"))
+    ]
     if not files:
         return None
+
     files.sort(key=os.path.getmtime, reverse=True)
     return files[0]
 
 
-def download(url, mode, outdir, progress_path):
-    os.makedirs(outdir, exist_ok=True)
-
-    for old in glob.glob(os.path.join(outdir, "*")):
-        try:
-            if os.path.isfile(old):
-                os.remove(old)
-        except OSError:
-            pass
+def download(url, mode, root_dir, progress_path):
+    outdir = _session_dir(root_dir, url, mode)
 
     try:
         os.remove(progress_path)
@@ -137,8 +173,8 @@ def download(url, mode, outdir, progress_path):
             raise RuntimeError("Не нашёл скачанный аудиофайл")
 
         title = sanitize_filename(info.get("title") or "audio", restricted=False)[:80]
-        video_id = info.get("id") or "download"
-        output_name = f"{title} [{video_id}].mp3"
+        media_id = info.get("id") or "download"
+        output_name = f"{title} [{media_id}].mp3"
 
         _write_progress(progress_path, 94, "Конвертирую в MP3…")
         return json.dumps({
@@ -219,21 +255,13 @@ def download(url, mode, outdir, progress_path):
     )
     opts["format"] = fmt
 
-    before = time.time()
     with YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=True)
         prepared = ydl.prepare_filename(info)
 
     source = _existing_file(prepared, os.path.join(outdir, "*"))
     if not source:
-        files = [
-            p for p in glob.glob(os.path.join(outdir, "*"))
-            if os.path.isfile(p) and os.path.getmtime(p) >= before - 2
-        ]
-        if not files:
-            raise RuntimeError("yt-dlp закончил работу, но файл не найден")
-        files.sort(key=os.path.getmtime, reverse=True)
-        source = files[0]
+        raise RuntimeError("yt-dlp закончил работу, но файл не найден")
 
     _write_progress(progress_path, 97, "Сохраняю в Downloads…")
     return json.dumps({
