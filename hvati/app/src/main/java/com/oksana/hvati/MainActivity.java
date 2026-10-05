@@ -3,7 +3,6 @@ package com.oksana.hvati;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -23,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
-    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\\\S+");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S+");
 
     private EditText urlBox;
     private TextView status;
@@ -191,10 +190,7 @@ public class MainActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_SEND);
         i.setType("text/plain");
         i.putExtra(Intent.EXTRA_TEXT, markedUrl);
-        i.setComponent(new ComponentName(
-                "com.termux",
-                "com.termux.app.api.file.FileShareReceiverActivity"
-        ));
+        i.setPackage("com.termux");
 
         try {
             startActivity(i);
