@@ -2,11 +2,100 @@ import glob
 import hashlib
 import json
 import os
+import re
 import shutil
+import socket
 import time
 
 from yt_dlp import YoutubeDL
-from yt_dlp.utils import sanitize_filename
+from yt_dlp.utils import DownloadError, sanitize_filename
+import requests
+
+
+
+_ORIGINAL_GETADDRINFO = socket.getaddrinfo
+_DNS_OVERRIDES = {}
+
+
+def _patched_getaddrinfo(host, port, *args, **kwargs):
+    key = str(host).lower()
+    ips = _DNS_OVERRIDES.get(key)
+    if ips:
+        results = []
+        for ip in ips:
+            try:
+                results.extend(_ORIGINAL_GETADDRINFO(ip, port, *args, **kwargs))
+            except OSError:
+                pass
+        if results:
+            return results
+    return _ORIGINAL_GETADDRINFO(host, port, *args, **kwargs)
+
+
+socket.getaddrinfo = _patched_getaddrinfo
+
+
+def _resolve_via_doh(host):
+    providers = (
+        ("https://cloudflare-dns.com/dns-query", {"name": host, "type": "A"}),
+        ("https://dns.google/resolve", {"name": host, "type": "A"}),
+    )
+
+    for endpoint, params in providers:
+        try:
+            response = requests.get(
+                endpoint,
+                params=params,
+                headers={"accept": "application/dns-json"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            ips = []
+            for answer in data.get("Answer") or []:
+                value = str(answer.get("data") or "").strip()
+                try:
+                    socket.inet_aton(value)
+                    ips.append(value)
+                except OSError:
+                    continue
+
+            if ips:
+                _DNS_OVERRIDES[host.lower()] = list(dict.fromkeys(ips))
+                return True
+        except Exception:
+            continue
+
+    return False
+
+
+def _dns_host_from_error(error):
+    message = str(error)
+    patterns = (
+        r"Failed to resolve ['\"]([^'\"]+)['\"]",
+        r"host=['\"]([^'\"]+)['\"]",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, message, flags=re.I)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _extract_with_dns_fallback(ydl, url, progress_path, download=True):
+    try:
+        return ydl.extract_info(url, download=download)
+    except DownloadError as error:
+        host = _dns_host_from_error(error)
+        if not host:
+            raise
+
+        _write_progress(progress_path, -1, "Переключаю DNS и продолжаю…")
+        if not _resolve_via_doh(host):
+            raise
+
+        time.sleep(0.4)
+        return ydl.extract_info(url, download=download)
 
 
 def _write_progress(path, percent, stage, downloaded=0, total=0, speed=0, eta=-1):
@@ -105,7 +194,7 @@ def _base_opts(outtmpl, hook, is_youtube):
         "progress_hooks": [hook],
 
         # v0.8: large downloads should survive temporary network/server drops.
-        "retries": 20,
+        "retries": 6,
         "fragment_retries": 30,
         "extractor_retries": 5,
         "file_access_retries": 5,
@@ -165,7 +254,7 @@ def download(url, mode, root_dir, progress_path):
         opts["format"] = "bestaudio/best"
 
         with YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(url, download=True)
+            info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
             prepared = ydl.prepare_filename(info)
 
         source = _existing_file(prepared, os.path.join(outdir, "audio.*"))
@@ -187,6 +276,7 @@ def download(url, mode, root_dir, progress_path):
         limits = {
             "480": 480,
             "720": 720,
+            "1080": 1080,
             "best": 2160,
         }
         limit = limits.get(mode, 480)
@@ -207,7 +297,7 @@ def download(url, mode, root_dir, progress_path):
             )
 
         with YoutubeDL(video_opts) as ydl:
-            video_info = ydl.extract_info(url, download=True)
+            video_info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
             video_prepared = ydl.prepare_filename(video_info)
 
         video_path = _existing_file(video_prepared, os.path.join(outdir, "video.*"))
@@ -222,7 +312,7 @@ def download(url, mode, root_dir, progress_path):
         audio_opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
 
         with YoutubeDL(audio_opts) as ydl:
-            audio_info = ydl.extract_info(url, download=True)
+            audio_info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
             audio_prepared = ydl.prepare_filename(audio_info)
 
         audio_path = _existing_file(audio_prepared, os.path.join(outdir, "audio.*"))
@@ -244,6 +334,7 @@ def download(url, mode, root_dir, progress_path):
     formats = {
         "480": "best[height<=480][ext=mp4]/best[height<=480]/best",
         "720": "best[height<=720][ext=mp4]/best[height<=720]/best",
+        "1080": "best[height<=1080][ext=mp4]/best[height<=1080]/best",
         "best": "best[ext=mp4]/best",
     }
     fmt = formats.get(mode, formats["480"])
@@ -256,7 +347,7 @@ def download(url, mode, root_dir, progress_path):
     opts["format"] = fmt
 
     with YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
+        info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
         prepared = ydl.prepare_filename(info)
 
     source = _existing_file(prepared, os.path.join(outdir, "*"))
