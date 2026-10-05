@@ -1,13 +1,15 @@
 package com.oksana.hvati;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.Gravity;
 import android.widget.Button;
@@ -17,6 +19,15 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chaquo.python.PyObject;
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +41,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (!Python.isStarted()) {
+            Python.start(new AndroidPlatform(this));
+        }
+
         buildUi();
         consumeIntent(getIntent());
     }
@@ -61,7 +77,7 @@ public class MainActivity extends Activity {
         root.addView(title);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Поделись ссылкой сюда — и забери видео без рекламной помойки.");
+        subtitle.setText("Автономная версия. Termux больше не нужен.");
         subtitle.setTextSize(16);
         subtitle.setTextColor(Color.rgb(78, 82, 92));
         LinearLayout.LayoutParams subLp = lp();
@@ -69,7 +85,7 @@ public class MainActivity extends Activity {
         root.addView(subtitle, subLp);
 
         urlBox = new EditText(this);
-        urlBox.setHint("https://...");
+        urlBox.setHint("Вставь ссылку или поделись ею сюда");
         urlBox.setTextSize(15);
         urlBox.setSingleLine(false);
         urlBox.setMinLines(2);
@@ -80,7 +96,7 @@ public class MainActivity extends Activity {
         root.addView(urlBox, urlLp);
 
         TextView choose = new TextView(this);
-        choose.setText("Что тащим?");
+        choose.setText("Качество");
         choose.setTextSize(18);
         choose.setTypeface(Typeface.DEFAULT_BOLD);
         choose.setTextColor(Color.rgb(17, 19, 24));
@@ -90,42 +106,24 @@ public class MainActivity extends Activity {
 
         root.addView(makeButton("480p · компактно", "480"));
         root.addView(makeButton("720p · покрасивее", "720"));
-        root.addView(makeButton("Лучшее качество", "best"));
-        root.addView(makeButton("Только MP3", "mp3"));
+        root.addView(makeButton("Лучшее единым файлом", "best"));
+
+        TextView note = new TextView(this);
+        note.setText("v0.4 пока скачивает только готовые видеофайлы. MP3 и склейку раздельных потоков добавим следующим слоем.");
+        note.setTextSize(13);
+        note.setTextColor(Color.rgb(90, 94, 104));
+        LinearLayout.LayoutParams noteLp = lp();
+        noteLp.topMargin = dp(18);
+        root.addView(note, noteLp);
 
         status = new TextView(this);
-        status.setText("Файлы будут падать в Downloads.");
+        status.setText("Готов. Файлы сохраняются в Downloads.");
         status.setTextSize(14);
         status.setTextColor(Color.rgb(78, 82, 92));
         status.setGravity(Gravity.CENTER_HORIZONTAL);
         LinearLayout.LayoutParams stLp = lp();
-        stLp.topMargin = dp(18);
+        stLp.topMargin = dp(22);
         root.addView(status, stLp);
-
-        TextView setupTitle = new TextView(this);
-        setupTitle.setText("Первый запуск");
-        setupTitle.setTextSize(17);
-        setupTitle.setTypeface(Typeface.DEFAULT_BOLD);
-        setupTitle.setTextColor(Color.rgb(17, 19, 24));
-        LinearLayout.LayoutParams setTitleLp = lp();
-        setTitleLp.topMargin = dp(30);
-        root.addView(setupTitle, setTitleLp);
-
-        TextView setup = new TextView(this);
-        setup.setText("Один раз обновим наш termux-url-opener, чтобы он понимал выбор качества из приложения.");
-        setup.setTextSize(14);
-        setup.setTextColor(Color.rgb(78, 82, 92));
-        LinearLayout.LayoutParams setupLp = lp();
-        setupLp.topMargin = dp(6);
-        root.addView(setup, setupLp);
-
-        Button copy = new Button(this);
-        copy.setAllCaps(false);
-        copy.setText("Скопировать команду настройки");
-        copy.setOnClickListener(v -> copySetupCommand());
-        LinearLayout.LayoutParams copyLp = lp();
-        copyLp.topMargin = dp(10);
-        root.addView(copy, copyLp);
 
         setContentView(scroll);
     }
@@ -165,6 +163,7 @@ public class MainActivity extends Activity {
         if (text == null) return null;
         Matcher m = URL_PATTERN.matcher(text);
         if (!m.find()) return text.trim();
+
         String url = m.group();
         while (url.endsWith(")") || url.endsWith("]") || url.endsWith("}") ||
                 url.endsWith(",") || url.endsWith(".") || url.endsWith(";")) {
@@ -180,63 +179,96 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (!isTermuxInstalled()) {
-            Toast.makeText(this, "Не вижу Termux на телефоне.", Toast.LENGTH_LONG).show();
-            return;
-        }
+        status.setText("Тащу видео…");
 
-        String markedUrl = url + "#hvati=" + mode;
+        new Thread(() -> {
+            try {
+                File workDir = new File(getCacheDir(), "yt_downloads");
+                if (!workDir.exists() && !workDir.mkdirs()) {
+                    throw new IllegalStateException("Не удалось создать временную папку");
+                }
 
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.setType("text/plain");
-        i.putExtra(Intent.EXTRA_TEXT, markedUrl);
-        i.setPackage("com.termux");
+                Python py = Python.getInstance();
+                PyObject module = py.getModule("downloader");
+                PyObject result = module.callAttr(
+                        "download",
+                        url,
+                        mode,
+                        workDir.getAbsolutePath()
+                );
 
-        try {
-            startActivity(i);
-            status.setText("Передал в Termux. Смотри Downloads 😏");
-        } catch (Exception e) {
-            status.setText("Не получилось передать ссылку в Termux.");
-            Toast.makeText(this, "Termux не принял ссылку.", Toast.LENGTH_LONG).show();
-        }
+                String path = result.toJava(String.class);
+                File file = new File(path);
+                Uri saved = saveToDownloads(file);
+
+                runOnUiThread(() -> {
+                    status.setText("Готово 😏  " + file.getName());
+                    Toast.makeText(this, "Сохранено в Downloads", Toast.LENGTH_LONG).show();
+                });
+
+            } catch (Throwable e) {
+                String message = e.getMessage();
+                if (message == null || message.trim().isEmpty()) {
+                    message = e.getClass().getSimpleName();
+                }
+                String finalMessage = message;
+                runOnUiThread(() -> {
+                    status.setText("Не вышло: " + finalMessage);
+                    Toast.makeText(this, "Скачивание не удалось", Toast.LENGTH_LONG).show();
+                });
+            }
+        }).start();
     }
 
-    private boolean isTermuxInstalled() {
-        try {
-            getPackageManager().getPackageInfo("com.termux", 0);
-            return true;
-        } catch (Exception e) {
-            return false;
+    private Uri saveToDownloads(File source) throws Exception {
+        String name = source.getName();
+        String lower = name.toLowerCase(Locale.ROOT);
+        String mime;
+        if (lower.endsWith(".mp4")) {
+            mime = "video/mp4";
+        } else if (lower.endsWith(".webm")) {
+            mime = "video/webm";
+        } else if (lower.endsWith(".m4v")) {
+            mime = "video/x-m4v";
+        } else {
+            mime = "application/octet-stream";
         }
-    }
 
-    private void copySetupCommand() {
-        String cmd =
-                "mkdir -p ~/bin && printf '%s\\n' " +
-                "'#!/data/data/com.termux/files/usr/bin/bash' " +
-                "'arg=\"$1\"' " +
-                "'mode=\"480\"' " +
-                "'case \"$arg\" in' " +
-                "'  *#hvati=720) mode=\"720\" ;;' " +
-                "'  *#hvati=best) mode=\"best\" ;;' " +
-                "'  *#hvati=mp3) mode=\"mp3\" ;;' " +
-                "'  *#hvati=480) mode=\"480\" ;;' " +
-                "'esac' " +
-                "'url=\"${arg%%#hvati=*}\"' " +
-                "'cd \"$HOME/storage/downloads\" || exit 1' " +
-                "'case \"$mode\" in' " +
-                "'  mp3) exec yt-dlp --no-playlist -x --audio-format mp3 --audio-quality 0 \"$url\" ;;' " +
-                "'  720) exec yt-dlp --no-playlist -f \"bv*[height<=720]+ba/b[height<=720]/b\" --merge-output-format mp4 \"$url\" ;;' " +
-                "'  best) exec yt-dlp --no-playlist -f \"bv*+ba/b\" --merge-output-format mp4 \"$url\" ;;' " +
-                "'  *) exec yt-dlp --no-playlist -f \"bv*[height<=480]+ba/b[height<=480]/b\" --merge-output-format mp4 \"$url\" ;;' " +
-                "'esac' " +
-                "> ~/bin/termux-url-opener && chmod +x ~/bin/termux-url-opener";
+        ContentResolver resolver = getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME, name);
+        values.put(MediaStore.Downloads.MIME_TYPE, mime);
+        values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+        values.put(MediaStore.Downloads.IS_PENDING, 1);
 
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        clipboard.setPrimaryClip(ClipData.newPlainText("Настройка Termux для Хвать", cmd));
-        Toast.makeText(this, "Скопировано. Вставь команду в Termux один раз.", Toast.LENGTH_SHORT).show();
+        Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+        if (uri == null) {
+            throw new IllegalStateException("Android не создал файл в Downloads");
+        }
 
-        Intent launch = getPackageManager().getLaunchIntentForPackage("com.termux");
-        if (launch != null) startActivity(launch);
+        try {
+            try (InputStream in = new FileInputStream(source);
+                 OutputStream out = resolver.openOutputStream(uri)) {
+                if (out == null) {
+                    throw new IllegalStateException("Android не открыл файл для записи");
+                }
+
+                byte[] buffer = new byte[1024 * 128];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+                out.flush();
+            }
+
+            ContentValues done = new ContentValues();
+            done.put(MediaStore.Downloads.IS_PENDING, 0);
+            resolver.update(uri, done, null, null);
+            return uri;
+
+        } catch (Throwable e) {
+            resolver.delete(uri, null, null);
+            throw e;
+        }
     }
 }
