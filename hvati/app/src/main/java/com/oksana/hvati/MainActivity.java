@@ -28,6 +28,7 @@ import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -121,6 +122,7 @@ public class MainActivity extends Activity {
         root.addView(makeButton("720p · покрасивее", "720"));
         root.addView(makeButton("Лучшее единым файлом", "best"));
         root.addView(makeButton("MP3 · только звук", "mp3"));
+        root.addView(makeButton("Фото / карусель · все слайды", "images"));
 
         LinearLayout progressRow = new LinearLayout(this);
         progressRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -167,7 +169,7 @@ public class MainActivity extends Activity {
         root.addView(progressDetails, detLp);
 
         TextView note = new TextView(this);
-        note.setText("v0.7: MP3 уже внутри приложения. Для аудио используется встроенный FFmpeg + LAME.");
+        note.setText("v0.8: большие загрузки умеют переживать обрывы; добавлены фото и Instagram-карусели.");
         note.setTextSize(13);
         note.setTextColor(Color.rgb(90, 94, 104));
         LinearLayout.LayoutParams noteLp = lp();
@@ -253,19 +255,67 @@ public class MainActivity extends Activity {
                 }
 
                 Python py = Python.getInstance();
-                PyObject module = py.getModule("downloader");
-                PyObject result = module.callAttr(
-                        "download",
-                        url,
-                        mode,
-                        workDir.getAbsolutePath(),
-                        progressFile.getAbsolutePath()
-                );
+                PyObject result;
+
+                if ("images".equals(mode)) {
+                    PyObject module = py.getModule("image_downloader");
+                    result = module.callAttr(
+                            "download_images",
+                            url,
+                            workDir.getAbsolutePath(),
+                            progressFile.getAbsolutePath()
+                    );
+                } else {
+                    PyObject module = py.getModule("downloader");
+                    result = module.callAttr(
+                            "download",
+                            url,
+                            mode,
+                            workDir.getAbsolutePath(),
+                            progressFile.getAbsolutePath()
+                    );
+                }
 
                 String payload = result.toJava(String.class);
                 JSONObject json = new JSONObject(payload);
                 String kind = json.getString("kind");
                 String outputName = json.optString("output_name", "download");
+
+                if ("gallery".equals(kind)) {
+                    JSONArray files = json.getJSONArray("files");
+                    int count = files.length();
+
+                    if (count == 0) {
+                        throw new IllegalStateException("Карусель пустая");
+                    }
+
+                    for (int i = 0; i < count; i++) {
+                        File galleryFile = new File(files.getString(i));
+                        int itemNumber = i + 1;
+                        int progress = 90 + (int) Math.floor((itemNumber - 1) * 9.0 / count);
+
+                        runOnUiThread(() -> {
+                            progressBar.setIndeterminate(false);
+                            progressBar.setProgress(progress);
+                            percentText.setText(progress + "%");
+                            status.setText("Сохраняю карусель…");
+                            progressDetails.setText(itemNumber + " / " + count + " · " + galleryFile.getName());
+                        });
+
+                        saveToDownloads(galleryFile, false);
+                    }
+
+                    downloading = false;
+                    runOnUiThread(() -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setProgress(100);
+                        percentText.setText("100%");
+                        status.setText("Готово 😏");
+                        progressDetails.setText("Сохранено файлов: " + count);
+                        Toast.makeText(this, "Сохранено файлов: " + count, Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
 
                 File outputFile;
 
@@ -530,10 +580,26 @@ public class MainActivity extends Activity {
     }
 
     private Uri saveToDownloads(File source) throws Exception {
+        return saveToDownloads(source, true);
+    }
+
+    private Uri saveToDownloads(File source, boolean updateUi) throws Exception {
         String name = source.getName();
         String lower = name.toLowerCase(Locale.ROOT);
         String mime;
-        if (lower.endsWith(".mp3")) {
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+            mime = "image/jpeg";
+        } else if (lower.endsWith(".png")) {
+            mime = "image/png";
+        } else if (lower.endsWith(".webp")) {
+            mime = "image/webp";
+        } else if (lower.endsWith(".gif")) {
+            mime = "image/gif";
+        } else if (lower.endsWith(".avif")) {
+            mime = "image/avif";
+        } else if (lower.endsWith(".heic") || lower.endsWith(".heif")) {
+            mime = "image/heif";
+        } else if (lower.endsWith(".mp3")) {
             mime = "audio/mpeg";
         } else if (lower.endsWith(".mp4")) {
             mime = "video/mp4";
@@ -577,7 +643,7 @@ public class MainActivity extends Activity {
                     copied += read;
 
                     long now = System.currentTimeMillis();
-                    if (now - lastUi > 220) {
+                    if (updateUi && now - lastUi > 220) {
                         lastUi = now;
                         int savePercent = 97 + (int) Math.min(2, (copied * 2) / total);
                         int finalSavePercent = savePercent;
