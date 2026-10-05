@@ -11,6 +11,11 @@ import requests
 from instaloader import Instaloader, Post
 
 
+def _check_cancel(cancel_path):
+    if cancel_path and os.path.exists(cancel_path):
+        raise RuntimeError("CANCELLED_BY_USER")
+
+
 MEDIA_EXTS = {
     ".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".heic",
     ".mp4", ".mov", ".m4v", ".webm",
@@ -50,7 +55,8 @@ def _instagram_shortcode(url):
     return match.group(1) if match else None
 
 
-def _download_instagram(url, outdir, progress_path):
+def _download_instagram(url, outdir, progress_path, cancel_path=None):
+    _check_cancel(cancel_path)
     shortcode = _instagram_shortcode(url)
     if not shortcode:
         raise RuntimeError("Не вижу shortcode Instagram в ссылке")
@@ -79,6 +85,7 @@ def _download_instagram(url, outdir, progress_path):
 
     _write_progress(progress_path, -1, "Скачиваю все слайды карусели…")
     ok = loader.download_post(post, target="hvati")
+    _check_cancel(cancel_path)
     files = _media_files(outdir)
 
     if not files:
@@ -123,7 +130,7 @@ def _guess_ext(content_type, url):
     return ext if ext in MEDIA_EXTS else ".jpg"
 
 
-def _download_binary(session, media_url, target_base, progress_path):
+def _download_binary(session, media_url, target_base, progress_path, cancel_path=None):
     started = time.monotonic()
     with session.get(media_url, stream=True, timeout=(15, 45), allow_redirects=True) as response:
         response.raise_for_status()
@@ -138,6 +145,7 @@ def _download_binary(session, media_url, target_base, progress_path):
         downloaded = 0
         with open(target + ".part", "wb") as f:
             for chunk in response.iter_content(chunk_size=128 * 1024):
+                _check_cancel(cancel_path)
                 if not chunk:
                     continue
                 f.write(chunk)
@@ -161,7 +169,8 @@ def _download_binary(session, media_url, target_base, progress_path):
         return target
 
 
-def _download_generic(url, outdir, progress_path):
+def _download_generic(url, outdir, progress_path, cancel_path=None):
+    _check_cancel(cancel_path)
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 "
@@ -185,6 +194,7 @@ def _download_generic(url, outdir, progress_path):
             url,
             os.path.join(outdir, "image"),
             progress_path,
+            cancel_path,
         )]
 
     parser = _MetaImageParser()
@@ -217,10 +227,11 @@ def _download_generic(url, outdir, progress_path):
         candidates[0],
         os.path.join(outdir, "image"),
         progress_path,
+        cancel_path,
     )]
 
 
-def download_images(url, root_dir, progress_path):
+def download_images(url, root_dir, progress_path, cancel_path=None):
     outdir = _session_dir(root_dir, url)
 
     # Remove only completed media from an older successful image run.
@@ -241,9 +252,9 @@ def download_images(url, root_dir, progress_path):
 
     try:
         if "instagram.com/" in lower:
-            files = _download_instagram(url, outdir, progress_path)
+            files = _download_instagram(url, outdir, progress_path, cancel_path)
         else:
-            files = _download_generic(url, outdir, progress_path)
+            files = _download_generic(url, outdir, progress_path, cancel_path)
     except Exception as first_error:
         # Instagram changes its public endpoints frequently. If structured
         # post extraction fails, still try the page's primary OpenGraph image.
