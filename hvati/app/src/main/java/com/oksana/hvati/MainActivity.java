@@ -113,6 +113,7 @@ public class MainActivity extends Activity {
         chooseLp.topMargin = dp(24);
         root.addView(choose, chooseLp);
 
+        root.addView(makeButton("240P · эконом", "240"));
         root.addView(makeButton("480P", "480"));
         root.addView(makeButton("720P", "720"));
         root.addView(makeButton("1080P", "1080"));
