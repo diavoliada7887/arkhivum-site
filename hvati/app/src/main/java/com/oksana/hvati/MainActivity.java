@@ -28,6 +28,8 @@ import com.arthenica.ffmpegkit.FFmpegKit;
 import com.arthenica.ffmpegkit.FFmpegSession;
 import com.arthenica.ffmpegkit.ReturnCode;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -260,26 +262,49 @@ public class MainActivity extends Activity {
                         progressFile.getAbsolutePath()
                 );
 
-                String path = result.toJava(String.class);
-                File downloadedFile = new File(path);
-                File outputFile = downloadedFile;
+                String payload = result.toJava(String.class);
+                JSONObject json = new JSONObject(payload);
+                String kind = json.getString("kind");
+                String outputName = json.optString("output_name", "download");
 
-                if ("mp3".equals(mode)) {
+                File outputFile;
+
+                if ("mp3".equals(kind)) {
+                    File sourceFile = new File(json.getString("source"));
+
                     runOnUiThread(() -> {
                         progressBar.setIndeterminate(false);
-                        progressBar.setProgress(96);
-                        percentText.setText("96%");
+                        progressBar.setProgress(94);
+                        percentText.setText("94%");
                         status.setText("Конвертирую в MP3…");
-                        progressDetails.setText(downloadedFile.getName());
+                        progressDetails.setText(sourceFile.getName());
                     });
-                    outputFile = convertToMp3(downloadedFile, workDir);
+
+                    outputFile = convertToMp3(sourceFile, workDir, outputName);
+
+                } else if ("merge".equals(kind)) {
+                    File videoFile = new File(json.getString("video"));
+                    File audioFile = new File(json.getString("audio"));
+
+                    runOnUiThread(() -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setProgress(95);
+                        percentText.setText("95%");
+                        status.setText("Склеиваю видео и звук…");
+                        progressDetails.setText("");
+                    });
+
+                    outputFile = mergeVideoAudio(videoFile, audioFile, workDir, outputName);
+
+                } else {
+                    outputFile = new File(json.getString("source"));
                 }
 
                 File fileToSave = outputFile;
                 runOnUiThread(() -> {
                     progressBar.setIndeterminate(false);
-                    progressBar.setProgress("mp3".equals(mode) ? 98 : 97);
-                    percentText.setText(("mp3".equals(mode) ? 98 : 97) + "%");
+                    progressBar.setProgress(98);
+                    percentText.setText("98%");
                     status.setText("Сохраняю в Downloads…");
                     progressDetails.setText(fileToSave.getName());
                 });
@@ -419,11 +444,9 @@ public class MainActivity extends Activity {
         return minutes + " мин " + rest + " с";
     }
 
-    private File convertToMp3(File source, File workDir) throws Exception {
-        String name = source.getName();
-        int dot = name.lastIndexOf('.');
-        String base = dot > 0 ? name.substring(0, dot) : name;
-        File target = new File(workDir, base + ".mp3");
+    private File convertToMp3(File source, File workDir, String outputName) throws Exception {
+        String safeName = outputName.endsWith(".mp3") ? outputName : outputName + ".mp3";
+        File target = new File(workDir, safeName);
 
         if (target.exists() && !target.delete()) {
             throw new IllegalStateException("Не удалось заменить старый временный MP3");
@@ -450,6 +473,62 @@ public class MainActivity extends Activity {
         return target;
     }
 
+    private File mergeVideoAudio(
+            File video,
+            File audio,
+            File workDir,
+            String outputName
+    ) throws Exception {
+        String safeName = outputName.endsWith(".mp4") ? outputName : outputName + ".mp4";
+        File target = new File(workDir, safeName);
+
+        if (target.exists() && !target.delete()) {
+            throw new IllegalStateException("Не удалось заменить старый временный MP4");
+        }
+
+        String[] arguments = new String[] {
+                "-y",
+                "-i", video.getAbsolutePath(),
+                "-i", audio.getAbsolutePath(),
+                "-map", "0:v:0",
+                "-map", "1:a:0",
+                "-c:v", "copy",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-movflags", "+faststart",
+                target.getAbsolutePath()
+        };
+
+        FFmpegSession session = FFmpegKit.executeWithArguments(arguments);
+
+        if (ReturnCode.isSuccess(session.getReturnCode()) &&
+                target.exists() &&
+                target.length() > 0) {
+            return target;
+        }
+
+        File mkv = new File(workDir, safeName.replaceAll("\\.mp4$", ".mkv"));
+        String[] fallback = new String[] {
+                "-y",
+                "-i", video.getAbsolutePath(),
+                "-i", audio.getAbsolutePath(),
+                "-map", "0:v:0",
+                "-map", "1:a:0",
+                "-c", "copy",
+                mkv.getAbsolutePath()
+        };
+
+        FFmpegSession fallbackSession = FFmpegKit.executeWithArguments(fallback);
+
+        if (!ReturnCode.isSuccess(fallbackSession.getReturnCode()) ||
+                !mkv.exists() ||
+                mkv.length() == 0) {
+            throw new IllegalStateException("FFmpeg не смог склеить видео и звук");
+        }
+
+        return mkv;
+    }
+
     private Uri saveToDownloads(File source) throws Exception {
         String name = source.getName();
         String lower = name.toLowerCase(Locale.ROOT);
@@ -462,6 +541,8 @@ public class MainActivity extends Activity {
             mime = "video/webm";
         } else if (lower.endsWith(".m4v")) {
             mime = "video/x-m4v";
+        } else if (lower.endsWith(".mkv")) {
+            mime = "video/x-matroska";
         } else {
             mime = "application/octet-stream";
         }
