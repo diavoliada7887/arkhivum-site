@@ -47,6 +47,15 @@ jobs:
         working-directory: hvati
         run: gradle :app:assembleDebug --no-daemon --stacktrace
 
+      - name: Verify APK
+        run: |
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          echo "=== APK SIGNATURE ==="
+          "$APKSIGNER" verify --verbose --print-certs hvati/app/build/outputs/apk/debug/app-debug.apk
+          echo "=== APK BADGING ==="
+          "$AAPT" dump badging hvati/app/build/outputs/apk/debug/app-debug.apk | head -40
+
       - name: Rename APK
         run: cp hvati/app/build/outputs/apk/debug/app-debug.apk Hvati-v1.apk
 
