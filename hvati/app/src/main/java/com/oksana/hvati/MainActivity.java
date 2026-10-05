@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
                 ScrollView.LayoutParams.WRAP_CONTENT));
 
         TextView title = new TextView(this);
-        title.setText("Хвать  ·  v0.9.1");
+        title.setText("Хвать  ·  v0.9.2");
         title.setTextSize(32);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextColor(Color.rgb(242, 245, 248));
