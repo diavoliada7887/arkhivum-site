@@ -116,7 +116,28 @@ public class DownloadService extends Service {
 
             synchronized (queueLock) {
                 queue.offer(task);
-                ensureForeground("Подготовка загрузки…", queue.size() + (currentTask == null ? 0 : 1), -1);
+                try {
+                    ensureForeground(
+                            "Подготовка загрузки…",
+                            queue.size() + (currentTask == null ? 0 : 1),
+                            -1
+                    );
+                } catch (Throwable e) {
+                    queue.remove(task);
+                    Intent error = new Intent(EVENT_ERROR);
+                    error.setPackage(getPackageName());
+                    error.putExtra(EXTRA_URL, task.url);
+                    error.putExtra(EXTRA_MODE, task.mode);
+                    error.putExtra(
+                            EXTRA_MESSAGE,
+                            "Не удалось запустить фоновую загрузку: "
+                                    + e.getClass().getSimpleName()
+                    );
+                    sendBroadcast(error);
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
+
                 if (worker == null || !worker.isAlive()) {
                     worker = new Thread(this::processQueue, "hvati-download-worker");
                     worker.start();
