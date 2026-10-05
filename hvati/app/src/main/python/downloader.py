@@ -274,6 +274,7 @@ def download(url, mode, root_dir, progress_path):
 
     if is_youtube:
         limits = {
+            "240": 240,
             "480": 480,
             "720": 720,
             "1080": 1080,
@@ -332,6 +333,7 @@ def download(url, mode, root_dir, progress_path):
         }, ensure_ascii=False)
 
     formats = {
+        "240": "best[height<=240][ext=mp4]/best[height<=240]/best",
         "480": "best[height<=480][ext=mp4]/best[height<=480]/best",
         "720": "best[height<=720][ext=mp4]/best[height<=720]/best",
         "1080": "best[height<=1080][ext=mp4]/best[height<=1080]/best",
