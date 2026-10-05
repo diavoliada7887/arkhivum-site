@@ -213,6 +213,16 @@ def _base_opts(outtmpl, hook, is_youtube):
     return opts
 
 
+def _apply_vk_http_tuning(opts, is_vk):
+    if not is_vk:
+        return
+
+    # VK/CDN often gives an initial burst and then throttles one long HTTP
+    # connection. yt-dlp's native chunked HTTP downloader re-opens bounded
+    # Range requests, which is specifically intended for server-side throttling.
+    opts["http_chunk_size"] = 8 * 1024 * 1024
+
+
 def _existing_file(prepared, pattern):
     if prepared and os.path.exists(prepared):
         return prepared
@@ -244,6 +254,12 @@ def download(url, mode, root_dir, progress_path):
         "youtu.be/",
         "youtube-nocookie.com/",
     ))
+    is_vk = any(host in lower_url for host in (
+        "vk.com/",
+        "vk.ru/",
+        "vkvideo.ru/",
+        "vk.cc/",
+    ))
 
     if mode == "mp3":
         opts = _base_opts(
@@ -252,6 +268,7 @@ def download(url, mode, root_dir, progress_path):
             is_youtube,
         )
         opts["format"] = "bestaudio/best"
+        _apply_vk_http_tuning(opts, is_vk)
 
         with YoutubeDL(opts) as ydl:
             info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
@@ -347,6 +364,7 @@ def download(url, mode, root_dir, progress_path):
         False,
     )
     opts["format"] = fmt
+    _apply_vk_http_tuning(opts, is_vk)
 
     with YoutubeDL(opts) as ydl:
         info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
