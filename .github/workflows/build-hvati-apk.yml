@@ -50,9 +50,16 @@ jobs:
       - name: Re-sign APK for sideload compatibility
         run: |
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          keytool -genkeypair -noprompt \
+            -keystore hvati-sideload.keystore \
+            -storepass android \
+            -alias hvati \
+            -keypass android \
+            -dname "CN=Hvati,O=Oksana,C=RU" \
+            -keyalg RSA -keysize 2048 -validity 10000
           "$APKSIGNER" sign \
-            --ks "$HOME/.android/debug.keystore" \
-            --ks-key-alias androiddebugkey \
+            --ks hvati-sideload.keystore \
+            --ks-key-alias hvati \
             --ks-pass pass:android \
             --key-pass pass:android \
             --v1-signing-enabled true \
