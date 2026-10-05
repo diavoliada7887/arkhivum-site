@@ -532,7 +532,7 @@ public class DownloadService extends Service {
             );
 
             builder.addAction(
-                    new Notification.Action.Builder(null, "Отменить", cancelPi).build()
+                    new Notification.Action.Builder(R.drawable.ic_notification, "Отменить", cancelPi).build()
             );
         }
 
@@ -568,17 +568,17 @@ public class DownloadService extends Service {
 
         if (openPi != null) {
             builder.addAction(
-                    new Notification.Action.Builder(null, "Открыть", openPi).build()
+                    new Notification.Action.Builder(R.drawable.ic_notification, "Открыть", openPi).build()
             );
         }
         if (sharePi != null) {
             builder.addAction(
-                    new Notification.Action.Builder(null, "Поделиться", sharePi).build()
+                    new Notification.Action.Builder(R.drawable.ic_notification, "Поделиться", sharePi).build()
             );
         }
         if (folderPi != null) {
             builder.addAction(
-                    new Notification.Action.Builder(null, "Папка", folderPi).build()
+                    new Notification.Action.Builder(R.drawable.ic_notification, "Папка", folderPi).build()
             );
         }
 
@@ -609,7 +609,7 @@ public class DownloadService extends Service {
                 .setAutoCancel(true)
                 .setContentIntent(mainPendingIntent())
                 .addAction(
-                        new Notification.Action.Builder(null, "Повторить", retryPi).build()
+                        new Notification.Action.Builder(R.drawable.ic_notification, "Повторить", retryPi).build()
                 )
                 .build();
 
