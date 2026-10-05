@@ -65,7 +65,7 @@ jobs:
             --v1-signing-enabled true \
             --v2-signing-enabled true \
             --v3-signing-enabled true \
-            --out Hvati-v2.apk \
+            --out Hvati-v3.apk \
             hvati/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Verify APK
@@ -73,13 +73,13 @@ jobs:
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           echo "=== APK SIGNATURE ==="
-          "$APKSIGNER" verify --verbose --print-certs Hvati-v2.apk
+          "$APKSIGNER" verify --verbose --print-certs Hvati-v3.apk
           echo "=== APK BADGING ==="
-          "$AAPT" dump badging Hvati-v2.apk | head -40
+          "$AAPT" dump badging Hvati-v3.apk | head -40
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hvati-v2
-          path: Hvati-v2.apk
+          name: Hvati-v3
+          path: Hvati-v3.apk
           retention-days: 1
