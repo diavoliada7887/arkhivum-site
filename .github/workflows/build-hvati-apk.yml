@@ -7,6 +7,12 @@ on:
     paths:
       - 'hvati/**'
       - '.github/workflows/build-hvati-apk.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'hvati/**'
+      - '.github/workflows/build-hvati-apk.yml'
 
 jobs:
   build:
