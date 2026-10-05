@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
         root.addView(progressDetails, detLp);
 
         TextView note = new TextView(this);
-        note.setText("v0.5: уже показывает реальный прогресс. MP3 и склейку раздельных потоков добавим следующим слоем.");
+        note.setText("v0.6: добавлен YouTube/Shorts fallback. MP3 и полную склейку потоков добавим следующим слоем.");
         note.setTextSize(13);
         note.setTextColor(Color.rgb(90, 94, 104));
         LinearLayout.LayoutParams noteLp = lp();
