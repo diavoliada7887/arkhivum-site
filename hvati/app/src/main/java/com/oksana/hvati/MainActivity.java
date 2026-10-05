@@ -24,6 +24,9 @@ import android.widget.Toast;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegSession;
+import com.arthenica.ffmpegkit.ReturnCode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -115,6 +118,7 @@ public class MainActivity extends Activity {
         root.addView(makeButton("480p · компактно", "480"));
         root.addView(makeButton("720p · покрасивее", "720"));
         root.addView(makeButton("Лучшее единым файлом", "best"));
+        root.addView(makeButton("MP3 · только звук", "mp3"));
 
         LinearLayout progressRow = new LinearLayout(this);
         progressRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -161,7 +165,7 @@ public class MainActivity extends Activity {
         root.addView(progressDetails, detLp);
 
         TextView note = new TextView(this);
-        note.setText("v0.6: добавлен YouTube/Shorts fallback. MP3 и полную склейку потоков добавим следующим слоем.");
+        note.setText("v0.7: MP3 уже внутри приложения. Для аудио используется встроенный FFmpeg + LAME.");
         note.setTextSize(13);
         note.setTextColor(Color.rgb(90, 94, 104));
         LinearLayout.LayoutParams noteLp = lp();
@@ -257,17 +261,30 @@ public class MainActivity extends Activity {
                 );
 
                 String path = result.toJava(String.class);
-                File file = new File(path);
+                File downloadedFile = new File(path);
+                File outputFile = downloadedFile;
 
+                if ("mp3".equals(mode)) {
+                    runOnUiThread(() -> {
+                        progressBar.setIndeterminate(false);
+                        progressBar.setProgress(96);
+                        percentText.setText("96%");
+                        status.setText("Конвертирую в MP3…");
+                        progressDetails.setText(downloadedFile.getName());
+                    });
+                    outputFile = convertToMp3(downloadedFile, workDir);
+                }
+
+                File fileToSave = outputFile;
                 runOnUiThread(() -> {
                     progressBar.setIndeterminate(false);
-                    progressBar.setProgress(97);
-                    percentText.setText("97%");
+                    progressBar.setProgress("mp3".equals(mode) ? 98 : 97);
+                    percentText.setText(("mp3".equals(mode) ? 98 : 97) + "%");
                     status.setText("Сохраняю в Downloads…");
-                    progressDetails.setText(file.getName());
+                    progressDetails.setText(fileToSave.getName());
                 });
 
-                saveToDownloads(file);
+                saveToDownloads(fileToSave);
 
                 downloading = false;
                 runOnUiThread(() -> {
@@ -275,7 +292,7 @@ public class MainActivity extends Activity {
                     progressBar.setProgress(100);
                     percentText.setText("100%");
                     status.setText("Готово 😏");
-                    progressDetails.setText(file.getName());
+                    progressDetails.setText(fileToSave.getName());
                     Toast.makeText(this, "Сохранено в Downloads", Toast.LENGTH_LONG).show();
                 });
 
@@ -402,11 +419,44 @@ public class MainActivity extends Activity {
         return minutes + " мин " + rest + " с";
     }
 
+    private File convertToMp3(File source, File workDir) throws Exception {
+        String name = source.getName();
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        File target = new File(workDir, base + ".mp3");
+
+        if (target.exists() && !target.delete()) {
+            throw new IllegalStateException("Не удалось заменить старый временный MP3");
+        }
+
+        String[] arguments = new String[] {
+                "-y",
+                "-i", source.getAbsolutePath(),
+                "-vn",
+                "-map_metadata", "0",
+                "-codec:a", "libmp3lame",
+                "-q:a", "2",
+                target.getAbsolutePath()
+        };
+
+        FFmpegSession session = FFmpegKit.executeWithArguments(arguments);
+
+        if (!ReturnCode.isSuccess(session.getReturnCode()) ||
+                !target.exists() ||
+                target.length() == 0) {
+            throw new IllegalStateException("FFmpeg не смог собрать MP3");
+        }
+
+        return target;
+    }
+
     private Uri saveToDownloads(File source) throws Exception {
         String name = source.getName();
         String lower = name.toLowerCase(Locale.ROOT);
         String mime;
-        if (lower.endsWith(".mp4")) {
+        if (lower.endsWith(".mp3")) {
+            mime = "audio/mpeg";
+        } else if (lower.endsWith(".mp4")) {
             mime = "video/mp4";
         } else if (lower.endsWith(".webm")) {
             mime = "video/webm";
