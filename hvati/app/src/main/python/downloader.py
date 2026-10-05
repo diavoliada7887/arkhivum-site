@@ -30,11 +30,29 @@ def download(url, mode, outdir, progress_path):
 
     _write_progress(progress_path, 0, "Получаю данные…")
 
-    formats = {
-        "480": "best[height<=480][ext=mp4]/best[height<=480]/best",
-        "720": "best[height<=720][ext=mp4]/best[height<=720]/best",
-        "best": "best[ext=mp4]/best",
-    }
+    is_youtube = any(host in url.lower() for host in (
+        "youtube.com/",
+        "youtu.be/",
+        "youtube-nocookie.com/",
+    ))
+
+    if is_youtube:
+        # YouTube increasingly hides formats behind JS challenges. In the
+        # no-FFmpeg/no-JS-runtime build, ask for the Android client and prefer
+        # a single playable stream. This keeps Shorts useful until v0.7 adds
+        # a JS runtime + stream merging.
+        formats = {
+            "480": "best[height<=480]/best",
+            "720": "best[height<=720]/best",
+            "best": "best",
+        }
+    else:
+        formats = {
+            "480": "best[height<=480][ext=mp4]/best[height<=480]/best",
+            "720": "best[height<=720][ext=mp4]/best[height<=720]/best",
+            "best": "best[ext=mp4]/best",
+        }
+
     fmt = formats.get(mode, formats["480"])
 
     last_update = [0.0]
@@ -93,6 +111,13 @@ def download(url, mode, outdir, progress_path):
         "restrictfilenames": False,
         "progress_hooks": [hook],
     }
+
+    if is_youtube:
+        opts["extractor_args"] = {
+            "youtube": {
+                "player_client": ["android"],
+            }
+        }
 
     before = time.time()
     with YoutubeDL(opts) as ydl:
