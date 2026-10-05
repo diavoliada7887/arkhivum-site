@@ -4,15 +4,18 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.Gravity;
-import android.view.View;
+import android.view.Window;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -45,6 +48,13 @@ public class MainActivity extends Activity {
 
     private static final Pattern URL_PATTERN = Pattern.compile("https?://\\S+");
 
+    private static final int BG = Color.rgb(11, 13, 16);
+    private static final int PANEL = Color.rgb(24, 28, 34);
+    private static final int PANEL_PRESSED = Color.rgb(32, 38, 45);
+    private static final int TEXT = Color.rgb(240, 243, 247);
+    private static final int MUTED = Color.rgb(133, 143, 156);
+    private static final int ACCENT = Color.rgb(94, 234, 212);
+
     private EditText urlBox;
     private TextView status;
     private TextView percentText;
@@ -60,6 +70,7 @@ public class MainActivity extends Activity {
             Python.start(new AndroidPlatform(this));
         }
 
+        styleSystemBars();
         buildUi();
         consumeIntent(getIntent());
     }
@@ -71,65 +82,133 @@ public class MainActivity extends Activity {
         consumeIntent(intent);
     }
 
+    private void styleSystemBars() {
+        Window window = getWindow();
+        window.setStatusBarColor(BG);
+        window.setNavigationBarColor(BG);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS |
+                        WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            }
+        }
+    }
+
     private void buildUi() {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.rgb(247, 247, 250));
+        scroll.setBackgroundColor(BG);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(22), dp(28), dp(22), dp(28));
+        root.setPadding(dp(22), dp(26), dp(22), dp(30));
         scroll.addView(root, new ScrollView.LayoutParams(
                 ScrollView.LayoutParams.MATCH_PARENT,
                 ScrollView.LayoutParams.WRAP_CONTENT));
 
+        LinearLayout titleRow = new LinearLayout(this);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.BOTTOM);
+        root.addView(titleRow, lp());
+
         TextView title = new TextView(this);
         title.setText("Хвать");
-        title.setTextSize(34);
+        title.setTextSize(38);
         title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setTextColor(Color.rgb(17, 19, 24));
-        root.addView(title);
+        title.setTextColor(TEXT);
+        titleRow.addView(title, new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f));
 
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Автономная версия. Termux больше не нужен.");
-        subtitle.setTextSize(16);
-        subtitle.setTextColor(Color.rgb(78, 82, 92));
-        LinearLayout.LayoutParams subLp = lp();
-        subLp.topMargin = dp(8);
-        root.addView(subtitle, subLp);
+        TextView version = new TextView(this);
+        version.setText("v0.9");
+        version.setTextSize(13);
+        version.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        version.setTextColor(ACCENT);
+        version.setGravity(Gravity.END);
+        LinearLayout.LayoutParams versionLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        versionLp.bottomMargin = dp(7);
+        titleRow.addView(version, versionLp);
 
         urlBox = new EditText(this);
-        urlBox.setHint("Вставь ссылку или поделись ею сюда");
-        urlBox.setTextSize(15);
+        urlBox.setHint("Вставь ссылку");
+        urlBox.setHintTextColor(MUTED);
+        urlBox.setTextColor(TEXT);
+        urlBox.setTextSize(16);
         urlBox.setSingleLine(false);
         urlBox.setMinLines(2);
+        urlBox.setMaxLines(4);
         urlBox.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        urlBox.setPadding(dp(14), dp(12), dp(14), dp(12));
+        urlBox.setPadding(dp(16), dp(14), dp(16), dp(14));
+        urlBox.setBackground(roundRect(PANEL, 16, Color.rgb(52, 61, 72), 1));
         LinearLayout.LayoutParams urlLp = lp();
         urlLp.topMargin = dp(22);
         root.addView(urlBox, urlLp);
 
-        TextView choose = new TextView(this);
-        choose.setText("Качество");
-        choose.setTextSize(18);
-        choose.setTypeface(Typeface.DEFAULT_BOLD);
-        choose.setTextColor(Color.rgb(17, 19, 24));
-        LinearLayout.LayoutParams chooseLp = lp();
-        chooseLp.topMargin = dp(24);
-        root.addView(choose, chooseLp);
+        TextView mode = sectionLabel("ФОРМАТ");
+        LinearLayout.LayoutParams modeLp = lp();
+        modeLp.topMargin = dp(24);
+        root.addView(mode, modeLp);
 
-        root.addView(makeButton("480p · компактно", "480"));
-        root.addView(makeButton("720p · покрасивее", "720"));
-        root.addView(makeButton("Лучшее единым файлом", "best"));
-        root.addView(makeButton("MP3 · только звук", "mp3"));
-        root.addView(makeButton("Фото / карусель · все слайды", "images"));
+        LinearLayout row1 = new LinearLayout(this);
+        row1.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams row1Lp = lp();
+        row1Lp.topMargin = dp(10);
+        root.addView(row1, row1Lp);
 
-        LinearLayout progressRow = new LinearLayout(this);
-        progressRow.setOrientation(LinearLayout.HORIZONTAL);
-        progressRow.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams rowLp = lp();
-        rowLp.topMargin = dp(24);
-        root.addView(progressRow, rowLp);
+        row1.addView(makeButton("480P", "480"), buttonHalfLp(false));
+        row1.addView(makeButton("720P", "720"), buttonHalfLp(true));
+
+        LinearLayout row2 = new LinearLayout(this);
+        row2.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams row2Lp = lp();
+        row2Lp.topMargin = dp(10);
+        root.addView(row2, row2Lp);
+
+        row2.addView(makeButton("1080P", "1080"), buttonHalfLp(false));
+        row2.addView(makeButton("MP3", "mp3"), buttonHalfLp(true));
+
+        Button images = makeButton("ФОТО / КАРУСЕЛЬ", "images");
+        LinearLayout.LayoutParams imageLp = lp();
+        imageLp.topMargin = dp(10);
+        images.setLayoutParams(imageLp);
+        root.addView(images);
+
+        LinearLayout progressCard = new LinearLayout(this);
+        progressCard.setOrientation(LinearLayout.VERTICAL);
+        progressCard.setPadding(dp(16), dp(15), dp(16), dp(15));
+        progressCard.setBackground(roundRect(PANEL, 16, Color.TRANSPARENT, 0));
+        LinearLayout.LayoutParams cardLp = lp();
+        cardLp.topMargin = dp(22);
+        root.addView(progressCard, cardLp);
+
+        LinearLayout progressTop = new LinearLayout(this);
+        progressTop.setOrientation(LinearLayout.HORIZONTAL);
+        progressTop.setGravity(Gravity.CENTER_VERTICAL);
+        progressCard.addView(progressTop, lp());
+
+        status = new TextView(this);
+        status.setText("ГОТОВ");
+        status.setTextSize(13);
+        status.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        status.setTextColor(MUTED);
+        progressTop.addView(status, new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f));
+
+        percentText = new TextView(this);
+        percentText.setText("0%");
+        percentText.setTextSize(20);
+        percentText.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        percentText.setTextColor(TEXT);
+        percentText.setGravity(Gravity.END);
+        progressTop.addView(percentText);
 
         progressBar = new ProgressBar(
                 this,
@@ -139,56 +218,69 @@ public class MainActivity extends Activity {
         progressBar.setMax(100);
         progressBar.setProgress(0);
         progressBar.setIndeterminate(false);
-        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(0, dp(12), 1f);
-        progressRow.addView(progressBar, barLp);
-
-        percentText = new TextView(this);
-        percentText.setText("0%");
-        percentText.setTextSize(18);
-        percentText.setTypeface(Typeface.DEFAULT_BOLD);
-        percentText.setTextColor(Color.rgb(17, 19, 24));
-        percentText.setGravity(Gravity.END);
-        LinearLayout.LayoutParams pctLp = new LinearLayout.LayoutParams(dp(72), LinearLayout.LayoutParams.WRAP_CONTENT);
-        pctLp.leftMargin = dp(12);
-        progressRow.addView(percentText, pctLp);
-
-        status = new TextView(this);
-        status.setText("Готов. Файлы сохраняются в Downloads.");
-        status.setTextSize(15);
-        status.setTextColor(Color.rgb(50, 54, 64));
-        LinearLayout.LayoutParams stLp = lp();
-        stLp.topMargin = dp(12);
-        root.addView(status, stLp);
+        progressBar.setProgressTintList(ColorStateList.valueOf(ACCENT));
+        progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(Color.rgb(47, 54, 63)));
+        LinearLayout.LayoutParams barLp = lp();
+        barLp.height = dp(8);
+        barLp.topMargin = dp(12);
+        progressCard.addView(progressBar, barLp);
 
         progressDetails = new TextView(this);
         progressDetails.setText("");
         progressDetails.setTextSize(13);
-        progressDetails.setTextColor(Color.rgb(90, 94, 104));
-        LinearLayout.LayoutParams detLp = lp();
-        detLp.topMargin = dp(4);
-        root.addView(progressDetails, detLp);
-
-        TextView note = new TextView(this);
-        note.setText("v0.8: большие загрузки умеют переживать обрывы; добавлены фото и Instagram-карусели.");
-        note.setTextSize(13);
-        note.setTextColor(Color.rgb(90, 94, 104));
-        LinearLayout.LayoutParams noteLp = lp();
-        noteLp.topMargin = dp(22);
-        root.addView(note, noteLp);
+        progressDetails.setTextColor(MUTED);
+        LinearLayout.LayoutParams detailsLp = lp();
+        detailsLp.topMargin = dp(10);
+        progressCard.addView(progressDetails, detailsLp);
 
         setContentView(scroll);
     }
 
+    private TextView sectionLabel(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextSize(12);
+        view.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        view.setLetterSpacing(0.12f);
+        view.setTextColor(MUTED);
+        return view;
+    }
+
     private Button makeButton(String label, String mode) {
-        Button b = new Button(this);
-        b.setAllCaps(false);
-        b.setText(label);
-        b.setTextSize(16);
-        b.setOnClickListener(v -> startDownload(mode));
-        LinearLayout.LayoutParams p = lp();
-        p.topMargin = dp(10);
-        b.setLayoutParams(p);
-        return b;
+        Button button = new Button(this);
+        button.setAllCaps(false);
+        button.setText(label);
+        button.setTextSize(16);
+        button.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        button.setTextColor(TEXT);
+        button.setStateListAnimator(null);
+        button.setPadding(dp(12), dp(13), dp(12), dp(13));
+        button.setBackground(roundRect(PANEL, 15, Color.rgb(47, 57, 67), 1));
+        button.setOnClickListener(v -> startDownload(mode));
+        return button;
+    }
+
+    private LinearLayout.LayoutParams buttonHalfLp(boolean right) {
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                0,
+                dp(58),
+                1f);
+        if (right) {
+            p.leftMargin = dp(5);
+        } else {
+            p.rightMargin = dp(5);
+        }
+        return p;
+    }
+
+    private GradientDrawable roundRect(int fill, int radiusDp, int stroke, int strokeDp) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fill);
+        drawable.setCornerRadius(dp(radiusDp));
+        if (strokeDp > 0) {
+            drawable.setStroke(dp(strokeDp), stroke);
+        }
+        return drawable;
     }
 
     private LinearLayout.LayoutParams lp() {
@@ -225,13 +317,13 @@ public class MainActivity extends Activity {
 
     private void startDownload(String mode) {
         if (downloading) {
-            Toast.makeText(this, "Я уже что-то тащу 😁", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Загрузка уже идёт", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String url = extractUrl(urlBox.getText().toString());
         if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) {
-            Toast.makeText(this, "Дай мне нормальную ссылку 🙂", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Нужна ссылка", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -239,7 +331,8 @@ public class MainActivity extends Activity {
         progressBar.setIndeterminate(false);
         progressBar.setProgress(0);
         percentText.setText("0%");
-        status.setText("Получаю данные…");
+        status.setText("ПОДКЛЮЧЕНИЕ");
+        status.setTextColor(ACCENT);
         progressDetails.setText("");
 
         File progressFile = new File(getCacheDir(), "yt_progress.txt");
@@ -298,7 +391,7 @@ public class MainActivity extends Activity {
                             progressBar.setIndeterminate(false);
                             progressBar.setProgress(progress);
                             percentText.setText(progress + "%");
-                            status.setText("Сохраняю карусель…");
+                            status.setText("СОХРАНЕНИЕ");
                             progressDetails.setText(itemNumber + " / " + count + " · " + galleryFile.getName());
                         });
 
@@ -310,9 +403,10 @@ public class MainActivity extends Activity {
                         progressBar.setIndeterminate(false);
                         progressBar.setProgress(100);
                         percentText.setText("100%");
-                        status.setText("Готово 😏");
-                        progressDetails.setText("Сохранено файлов: " + count);
-                        Toast.makeText(this, "Сохранено файлов: " + count, Toast.LENGTH_LONG).show();
+                        status.setText("ГОТОВО");
+                        status.setTextColor(ACCENT);
+                        progressDetails.setText("Файлов: " + count);
+                        Toast.makeText(this, "Сохранено: " + count, Toast.LENGTH_LONG).show();
                     });
                     return;
                 }
@@ -326,7 +420,7 @@ public class MainActivity extends Activity {
                         progressBar.setIndeterminate(false);
                         progressBar.setProgress(94);
                         percentText.setText("94%");
-                        status.setText("Конвертирую в MP3…");
+                        status.setText("MP3");
                         progressDetails.setText(sourceFile.getName());
                     });
 
@@ -340,7 +434,7 @@ public class MainActivity extends Activity {
                         progressBar.setIndeterminate(false);
                         progressBar.setProgress(95);
                         percentText.setText("95%");
-                        status.setText("Склеиваю видео и звук…");
+                        status.setText("СБОРКА");
                         progressDetails.setText("");
                     });
 
@@ -355,7 +449,7 @@ public class MainActivity extends Activity {
                     progressBar.setIndeterminate(false);
                     progressBar.setProgress(98);
                     percentText.setText("98%");
-                    status.setText("Сохраняю в Downloads…");
+                    status.setText("СОХРАНЕНИЕ");
                     progressDetails.setText(fileToSave.getName());
                 });
 
@@ -366,9 +460,10 @@ public class MainActivity extends Activity {
                     progressBar.setIndeterminate(false);
                     progressBar.setProgress(100);
                     percentText.setText("100%");
-                    status.setText("Готово 😏");
+                    status.setText("ГОТОВО");
+                    status.setTextColor(ACCENT);
                     progressDetails.setText(fileToSave.getName());
-                    Toast.makeText(this, "Сохранено в Downloads", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Сохранено", Toast.LENGTH_LONG).show();
                 });
 
             } catch (Throwable e) {
@@ -382,9 +477,10 @@ public class MainActivity extends Activity {
                     progressBar.setIndeterminate(false);
                     progressBar.setProgress(0);
                     percentText.setText("—");
-                    status.setText("Не вышло.");
+                    status.setText("ОШИБКА");
+                    status.setTextColor(Color.rgb(248, 113, 113));
                     progressDetails.setText(finalMessage);
-                    Toast.makeText(this, "Скачивание не удалось", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Не удалось скачать", Toast.LENGTH_LONG).show();
                 });
             }
         }).start();
@@ -443,7 +539,8 @@ public class MainActivity extends Activity {
             long speed,
             long eta
     ) {
-        status.setText(stage);
+        status.setText(stage.toUpperCase(Locale.ROOT));
+        status.setTextColor(ACCENT);
 
         if (percent >= 0) {
             progressBar.setIndeterminate(false);
@@ -472,7 +569,7 @@ public class MainActivity extends Activity {
 
         if (eta >= 0) {
             if (details.length() > 0) details.append(" · ");
-            details.append("ещё ~").append(formatEta(eta));
+            details.append("~").append(formatEta(eta));
         }
 
         progressDetails.setText(details.toString());
@@ -491,7 +588,7 @@ public class MainActivity extends Activity {
         if (seconds < 60) return seconds + " с";
         long minutes = seconds / 60;
         long rest = seconds % 60;
-        return minutes + " мин " + rest + " с";
+        return minutes + ":" + String.format(Locale.getDefault(), "%02d", rest);
     }
 
     private File convertToMp3(File source, File workDir, String outputName) throws Exception {
@@ -499,7 +596,7 @@ public class MainActivity extends Activity {
         File target = new File(workDir, safeName);
 
         if (target.exists() && !target.delete()) {
-            throw new IllegalStateException("Не удалось заменить старый временный MP3");
+            throw new IllegalStateException("Не удалось заменить временный MP3");
         }
 
         String[] arguments = new String[] {
@@ -533,7 +630,7 @@ public class MainActivity extends Activity {
         File target = new File(workDir, safeName);
 
         if (target.exists() && !target.delete()) {
-            throw new IllegalStateException("Не удалось заменить старый временный MP4");
+            throw new IllegalStateException("Не удалось заменить временный MP4");
         }
 
         String[] arguments = new String[] {
@@ -587,6 +684,7 @@ public class MainActivity extends Activity {
         String name = source.getName();
         String lower = name.toLowerCase(Locale.ROOT);
         String mime;
+
         if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
             mime = "image/jpeg";
         } else if (lower.endsWith(".png")) {
@@ -651,7 +749,7 @@ public class MainActivity extends Activity {
                             progressBar.setIndeterminate(false);
                             progressBar.setProgress(finalSavePercent);
                             percentText.setText(finalSavePercent + "%");
-                            status.setText("Сохраняю в Downloads…");
+                            status.setText("СОХРАНЕНИЕ");
                         });
                     }
                 }
