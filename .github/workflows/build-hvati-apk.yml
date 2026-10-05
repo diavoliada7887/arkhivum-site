@@ -6,6 +6,7 @@ on:
       - hvati-apk-v1
       - hvati-autonomous-v04
       - hvati-autonomous-v05
+      - hvati-autonomous-v06
     paths:
       - 'hvati/**'
       - '.github/workflows/build-hvati-apk.yml'
@@ -72,7 +73,7 @@ jobs:
             --v1-signing-enabled true \
             --v2-signing-enabled true \
             --v3-signing-enabled true \
-            --out Hvati-autonomous-v05.apk \
+            --out Hvati-autonomous-v06.apk \
             hvati/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Verify APK
@@ -80,13 +81,13 @@ jobs:
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           echo "=== APK SIGNATURE ==="
-          "$APKSIGNER" verify --verbose --print-certs Hvati-autonomous-v05.apk
+          "$APKSIGNER" verify --verbose --print-certs Hvati-autonomous-v06.apk
           echo "=== APK BADGING ==="
-          "$AAPT" dump badging Hvati-autonomous-v05.apk | head -40
+          "$AAPT" dump badging Hvati-autonomous-v06.apk | head -40
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hvati-autonomous-v05
-          path: Hvati-autonomous-v05.apk
+          name: Hvati-autonomous-v06
+          path: Hvati-autonomous-v06.apk
           retention-days: 1
