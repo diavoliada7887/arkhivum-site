@@ -106,13 +106,18 @@ def _write_progress(path, percent, stage, downloaded=0, total=0, speed=0, eta=-1
     os.replace(tmp, path)
 
 
+def _check_cancel(cancel_path):
+    if cancel_path and os.path.exists(cancel_path):
+        raise RuntimeError("CANCELLED_BY_USER")
+
+
 def _session_dir(root, url, mode):
     os.makedirs(root, exist_ok=True)
     key = hashlib.sha256(f"{mode}|{url}".encode("utf-8")).hexdigest()[:18]
     current = os.path.join(root, key)
     os.makedirs(current, exist_ok=True)
 
-    cutoff = time.time() - 3 * 24 * 60 * 60
+    cutoff = time.time() - 24 * 60 * 60
     try:
         for name in os.listdir(root):
             path = os.path.join(root, name)
@@ -129,10 +134,11 @@ def _session_dir(root, url, mode):
     return current
 
 
-def _hook(progress_path, stage, start_percent, end_percent):
+def _hook(progress_path, stage, start_percent, end_percent, cancel_path=None):
     last_update = [0.0]
 
     def hook(d):
+        _check_cancel(cancel_path)
         now = time.monotonic()
         status = d.get("status")
 
@@ -238,7 +244,7 @@ def _existing_file(prepared, pattern):
     return files[0]
 
 
-def download(url, mode, root_dir, progress_path):
+def download(url, mode, root_dir, progress_path, cancel_path=None):
     outdir = _session_dir(root_dir, url, mode)
 
     try:
@@ -264,7 +270,7 @@ def download(url, mode, root_dir, progress_path):
     if mode == "mp3":
         opts = _base_opts(
             os.path.join(outdir, "audio.%(ext)s"),
-            _hook(progress_path, "Скачиваю аудио…", 0, 92),
+            _hook(progress_path, "Скачиваю аудио…", 0, 92, cancel_path),
             is_youtube,
         )
         opts["format"] = "bestaudio/best"
@@ -301,7 +307,7 @@ def download(url, mode, root_dir, progress_path):
 
         video_opts = _base_opts(
             os.path.join(outdir, "video.%(ext)s"),
-            _hook(progress_path, "Скачиваю видео…", 0, 68),
+            _hook(progress_path, "Скачиваю видео…", 0, 68, cancel_path),
             True,
         )
         if mode == "best":
@@ -324,7 +330,7 @@ def download(url, mode, root_dir, progress_path):
 
         audio_opts = _base_opts(
             os.path.join(outdir, "audio.%(ext)s"),
-            _hook(progress_path, "Скачиваю звук…", 68, 94),
+            _hook(progress_path, "Скачиваю звук…", 68, 94, cancel_path),
             True,
         )
         audio_opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
@@ -360,7 +366,7 @@ def download(url, mode, root_dir, progress_path):
 
     opts = _base_opts(
         os.path.join(outdir, "%(title).80s [%(id)s].%(ext)s"),
-        _hook(progress_path, "Скачиваю…", 0, 95),
+        _hook(progress_path, "Скачиваю…", 0, 95, cancel_path),
         False,
     )
     opts["format"] = fmt
