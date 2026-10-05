@@ -11,8 +11,8 @@ android {
         applicationId "com.oksana.hvati.autonomous"
         minSdk 29
         targetSdk 35
-        versionCode 12
-        versionName "0.9.2"
+        versionCode 13
+        versionName "1.0"
 
         ndk {
             abiFilters "arm64-v8a"
@@ -42,7 +42,6 @@ chaquopy {
         }
     }
 }
-
 
 dependencies {
     implementation 'dev.ffmpegkit-maintained:ffmpeg-kit-full:8.1.7'
