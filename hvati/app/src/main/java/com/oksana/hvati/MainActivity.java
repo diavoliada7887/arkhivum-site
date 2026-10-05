@@ -2,6 +2,7 @@ package com.oksana.hvati;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
@@ -26,6 +29,10 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.chaquo.python.PyObject;
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -57,6 +64,14 @@ public class MainActivity extends Activity {
     private LinearLayout historyContainer;
     private LinearLayout afterDownloadActions;
     private Button retryButton;
+    private Button mode240;
+    private Button mode480;
+    private Button mode720;
+    private Button mode1080;
+    private Button modeMp3;
+
+    private final Handler probeHandler = new Handler(Looper.getMainLooper());
+    private int probeGeneration = 0;
 
     private ArrayList<Uri> lastUris = new ArrayList<>();
     private String lastMime = "*/*";
@@ -132,7 +147,7 @@ public class MainActivity extends Activity {
         TextView title = text("Хвать", 34, TEXT, true);
         root.addView(title);
 
-        TextView version = text("v1.0", 13, MUTED, false);
+        TextView version = text("v1.0.2", 13, MUTED, false);
         LinearLayout.LayoutParams versionLp = lp();
         versionLp.topMargin = dp(2);
         root.addView(version, versionLp);
@@ -159,7 +174,10 @@ public class MainActivity extends Activity {
 
         urlBox.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { updateRecommendation(s.toString()); }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateRecommendation(s.toString());
+                scheduleProbe(s.toString());
+            }
             @Override public void afterTextChanged(Editable s) { }
         });
 
@@ -168,11 +186,17 @@ public class MainActivity extends Activity {
         formatLp.topMargin = dp(22);
         root.addView(formatTitle, formatLp);
 
-        root.addView(makeModeButton("240P · эконом", "240"));
-        root.addView(makeModeButton("480P", "480"));
-        root.addView(makeModeButton("720P", "720"));
-        root.addView(makeModeButton("1080P", "1080"));
-        root.addView(makeModeButton("MP3", "mp3"));
+        mode240 = makeModeButton("240P · эконом", "240");
+        mode480 = makeModeButton("480P", "480");
+        mode720 = makeModeButton("720P", "720");
+        mode1080 = makeModeButton("1080P", "1080");
+        modeMp3 = makeModeButton("MP3 из видео", "mp3");
+
+        root.addView(mode240);
+        root.addView(mode480);
+        root.addView(mode720);
+        root.addView(mode1080);
+        root.addView(modeMp3);
         root.addView(makeModeButton("Фото / карусель", "images"));
 
         LinearLayout utilities = new LinearLayout(this);
@@ -183,11 +207,22 @@ public class MainActivity extends Activity {
 
         Button folder = utilityButton("Загрузки");
         folder.setOnClickListener(v -> openDownloadsFolder());
-        utilities.addView(folder, halfLp(false));
+        LinearLayout.LayoutParams folderLp = new LinearLayout.LayoutParams(0, dp(52), 1f);
+        folderLp.rightMargin = dp(4);
+        utilities.addView(folder, folderLp);
 
-        Button feedback = utilityButton("Обратная связь");
+        Button abilities = utilityButton("Что я умею");
+        abilities.setOnClickListener(v -> showCapabilities());
+        LinearLayout.LayoutParams abilitiesLp = new LinearLayout.LayoutParams(0, dp(52), 1f);
+        abilitiesLp.leftMargin = dp(4);
+        abilitiesLp.rightMargin = dp(4);
+        utilities.addView(abilities, abilitiesLp);
+
+        Button feedback = utilityButton("Связь");
         feedback.setOnClickListener(v -> openUrl("https://t.me/hvat_download_bot"));
-        utilities.addView(feedback, halfLp(true));
+        LinearLayout.LayoutParams feedbackLp = new LinearLayout.LayoutParams(0, dp(52), 1f);
+        feedbackLp.leftMargin = dp(4);
+        utilities.addView(feedback, feedbackLp);
 
         LinearLayout progressRow = new LinearLayout(this);
         progressRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -453,6 +488,96 @@ public class MainActivity extends Activity {
         }
     }
 
+
+    private void showCapabilities() {
+        String message =
+                "Видео: YouTube, VK Video, RuTube, Instagram Reels, Pinterest и другие сайты, которые поддерживает движок загрузки.\n\n"
+                + "Фото и Instagram-карусели: сохраняю все слайды.\n\n"
+                + "MP3 из видео, качество 240P / 480P / 720P / 1080P.\n\n"
+                + "Есть очередь, фоновые загрузки, повтор после обрыва, история и кнопки «Открыть / Поделиться / Папка».\n\n"
+                + "Важно: если сайт у тебя открывается только через VPN, не выключай VPN до конца загрузки. "
+                + "Особенно это касается YouTube, Instagram и других ограниченных сервисов.";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Что я умею")
+                .setMessage(message)
+                .setPositiveButton("Понятно", null)
+                .show();
+    }
+
+    private void scheduleProbe(String raw) {
+        resetSizeLabels();
+        probeGeneration++;
+        final int generation = probeGeneration;
+        final String url = extractUrl(raw);
+
+        probeHandler.removeCallbacksAndMessages(null);
+        if (url == null) return;
+
+        probeHandler.postDelayed(() -> runProbe(url, generation), 650);
+    }
+
+    private void runProbe(String url, int generation) {
+        recommendation.setText(recommendation.getText() + " · считаю размер…");
+
+        new Thread(() -> {
+            try {
+                synchronized (Python.class) {
+                    if (!Python.isStarted()) {
+                        Python.start(new AndroidPlatform(getApplicationContext()));
+                    }
+                }
+
+                PyObject result = Python.getInstance()
+                        .getModule("probe")
+                        .callAttr("probe", url);
+
+                JSONObject sizes = new JSONObject(result.toJava(String.class));
+
+                runOnUiThread(() -> {
+                    if (generation != probeGeneration) return;
+                    String current = extractUrl(urlBox.getText().toString());
+                    if (current == null || !current.equals(url)) return;
+
+                    applySizeLabel(mode240, "240P · эконом", sizes.optLong("240", 0));
+                    applySizeLabel(mode480, "480P", sizes.optLong("480", 0));
+                    applySizeLabel(mode720, "720P", sizes.optLong("720", 0));
+                    applySizeLabel(mode1080, "1080P", sizes.optLong("1080", 0));
+                    applySizeLabel(modeMp3, "MP3 из видео", sizes.optLong("mp3", 0));
+
+                    updateRecommendation(urlBox.getText().toString());
+                });
+
+            } catch (Throwable ignored) {
+                runOnUiThread(() -> {
+                    if (generation == probeGeneration) {
+                        updateRecommendation(urlBox.getText().toString());
+                    }
+                });
+            }
+        }, "hvati-size-probe").start();
+    }
+
+    private void resetSizeLabels() {
+        if (mode240 != null) mode240.setText("240P · эконом");
+        if (mode480 != null) mode480.setText("480P");
+        if (mode720 != null) mode720.setText("720P");
+        if (mode1080 != null) mode1080.setText("1080P");
+        if (modeMp3 != null) modeMp3.setText("MP3 из видео");
+    }
+
+    private void applySizeLabel(Button button, String base, long bytes) {
+        if (button == null) return;
+        button.setText(bytes > 0 ? base + "   ·   ~" + formatApproxSize(bytes) : base);
+    }
+
+    private String formatApproxSize(long bytes) {
+        double mb = bytes / (1024.0 * 1024.0);
+        if (mb < 0.1) return "<0.1 МБ";
+        if (mb < 1000) return String.format(Locale.getDefault(), "%.0f МБ", mb);
+        return String.format(Locale.getDefault(), "%.1f ГБ", mb / 1024.0);
+    }
+
     private void openLast() {
         openUris(lastUris, lastMime);
     }
@@ -540,7 +665,7 @@ public class MainActivity extends Activity {
             case "480": return "480P";
             case "720": return "720P";
             case "1080": return "1080P";
-            case "mp3": return "MP3";
+            case "mp3": return "MP3 из видео";
             case "images": return "Фото / карусель";
             default: return mode == null ? "" : mode;
         }
