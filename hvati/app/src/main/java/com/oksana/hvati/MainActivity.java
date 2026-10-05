@@ -120,6 +120,25 @@ public class MainActivity extends Activity {
         root.addView(makeButton("MP3", "mp3"));
         root.addView(makeButton("Фото / карусель", "images"));
 
+        Button feedback = new Button(this);
+        feedback.setAllCaps(false);
+        feedback.setText("Обратная связь");
+        feedback.setTextSize(15);
+        feedback.setTextColor(Color.rgb(180, 190, 203));
+        feedback.setBackgroundColor(Color.rgb(25, 29, 35));
+        feedback.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/hvat_download_bot"));
+                startActivity(intent);
+            } catch (Throwable e) {
+                Toast.makeText(this, "@hvat_download_bot", Toast.LENGTH_LONG).show();
+            }
+        });
+        LinearLayout.LayoutParams feedbackLp = lp();
+        feedbackLp.topMargin = dp(16);
+        feedback.setLayoutParams(feedbackLp);
+        root.addView(feedback);
+
         LinearLayout progressRow = new LinearLayout(this);
         progressRow.setOrientation(LinearLayout.HORIZONTAL);
         progressRow.setGravity(Gravity.CENTER_VERTICAL);
