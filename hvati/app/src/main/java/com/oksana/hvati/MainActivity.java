@@ -109,7 +109,6 @@ public class MainActivity extends Activity {
             registerReceiver(receiver, filter);
         }
         refreshHistory();
-        DownloadService.requestState(this);
     }
 
     @Override
