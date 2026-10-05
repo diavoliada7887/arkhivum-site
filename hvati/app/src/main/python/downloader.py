@@ -36,11 +36,11 @@ def download(url, mode, outdir, progress_path):
         "youtube-nocookie.com/",
     ))
 
-    if is_youtube:
-        # YouTube increasingly hides formats behind JS challenges. In the
-        # no-FFmpeg/no-JS-runtime build, ask for the Android client and prefer
-        # a single playable stream. This keeps Shorts useful until v0.7 adds
-        # a JS runtime + stream merging.
+    if mode == "mp3":
+        # Prefer a real audio-only stream, but always fall back to a combined
+        # playable stream. FFmpeg extracts and encodes the audio afterwards.
+        formats = {"mp3": "bestaudio/best"}
+    elif is_youtube:
         formats = {
             "480": "best[height<=480]/best",
             "720": "best[height<=720]/best",
@@ -53,7 +53,7 @@ def download(url, mode, outdir, progress_path):
             "best": "best[ext=mp4]/best",
         }
 
-    fmt = formats.get(mode, formats["480"])
+    fmt = formats.get(mode, formats.get("480", "best"))
 
     last_update = [0.0]
 
@@ -91,10 +91,11 @@ def download(url, mode, outdir, progress_path):
             )
 
         elif status == "finished":
+            stage = "Аудио скачано. Готовлю MP3…" if mode == "mp3" else "Файл скачан. Подготавливаю…"
             _write_progress(
                 progress_path,
                 96,
-                "Файл скачан. Подготавливаю…",
+                stage,
                 d.get("downloaded_bytes") or 0,
                 d.get("total_bytes") or d.get("total_bytes_estimate") or 0,
                 0,
@@ -125,7 +126,10 @@ def download(url, mode, outdir, progress_path):
         prepared = ydl.prepare_filename(info)
 
     if os.path.exists(prepared):
-        _write_progress(progress_path, 97, "Сохраняю в Downloads…")
+        if mode == "mp3":
+            _write_progress(progress_path, 96, "Конвертирую в MP3…")
+        else:
+            _write_progress(progress_path, 97, "Сохраняю в Downloads…")
         return prepared
 
     files = [
@@ -136,5 +140,8 @@ def download(url, mode, outdir, progress_path):
         raise RuntimeError("yt-dlp закончил работу, но файл не найден")
 
     files.sort(key=os.path.getmtime, reverse=True)
-    _write_progress(progress_path, 97, "Сохраняю в Downloads…")
+    if mode == "mp3":
+        _write_progress(progress_path, 96, "Конвертирую в MP3…")
+    else:
+        _write_progress(progress_path, 97, "Сохраняю в Downloads…")
     return files[0]
