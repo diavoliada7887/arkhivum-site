@@ -11,6 +11,8 @@ from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError, sanitize_filename
 import requests
 
+from media_formats import YOUTUBE_AUDIO, video_format
+
 
 
 _ORIGINAL_GETADDRINFO = socket.getaddrinfo
@@ -296,29 +298,12 @@ def download(url, mode, root_dir, progress_path, cancel_path=None):
         }, ensure_ascii=False)
 
     if is_youtube:
-        limits = {
-            "240": 240,
-            "480": 480,
-            "720": 720,
-            "1080": 1080,
-            "best": 2160,
-        }
-        limit = limits.get(mode, 480)
-
         video_opts = _base_opts(
             os.path.join(outdir, "video.%(ext)s"),
             _hook(progress_path, "Скачиваю видео…", 0, 68, cancel_path),
             True,
         )
-        if mode == "best":
-            video_opts["format"] = "bestvideo[ext=mp4]/best[ext=mp4]/bestvideo/best"
-        else:
-            video_opts["format"] = (
-                f"bestvideo[height<={limit}][ext=mp4]/"
-                f"best[height<={limit}][ext=mp4]/"
-                f"bestvideo[height<={limit}]/"
-                f"best[height<={limit}]/best"
-            )
+        video_opts["format"] = video_format(mode, True)
 
         with YoutubeDL(video_opts) as ydl:
             video_info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
@@ -333,7 +318,7 @@ def download(url, mode, root_dir, progress_path, cancel_path=None):
             _hook(progress_path, "Скачиваю звук…", 68, 94, cancel_path),
             True,
         )
-        audio_opts["format"] = "bestaudio[ext=m4a]/bestaudio/best"
+        audio_opts["format"] = YOUTUBE_AUDIO
 
         with YoutubeDL(audio_opts) as ydl:
             audio_info = _extract_with_dns_fallback(ydl, url, progress_path, download=True)
@@ -355,14 +340,7 @@ def download(url, mode, root_dir, progress_path, cancel_path=None):
             "output_name": output_name,
         }, ensure_ascii=False)
 
-    formats = {
-        "240": "best[height<=240][ext=mp4]/best[height<=240]/best",
-        "480": "best[height<=480][ext=mp4]/best[height<=480]/best",
-        "720": "best[height<=720][ext=mp4]/best[height<=720]/best",
-        "1080": "best[height<=1080][ext=mp4]/best[height<=1080]/best",
-        "best": "best[ext=mp4]/best",
-    }
-    fmt = formats.get(mode, formats["480"])
+    fmt = video_format(mode, False)
 
     opts = _base_opts(
         os.path.join(outdir, "%(title).80s [%(id)s].%(ext)s"),

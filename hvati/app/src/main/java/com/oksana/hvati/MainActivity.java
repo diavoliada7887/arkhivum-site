@@ -41,6 +41,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,7 +75,16 @@ public class MainActivity extends Activity {
     private Button modeMp3;
 
     private final Handler probeHandler = new Handler(Looper.getMainLooper());
-    private int probeGeneration = 0;
+    // One worker across Activity recreation, and at most one pending URL.
+    private static final ThreadPoolExecutor PROBE_EXECUTOR = new ThreadPoolExecutor(
+            1, 1, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1),
+            runnable -> new Thread(runnable, "hvati-size-probe"),
+            new ThreadPoolExecutor.DiscardOldestPolicy());
+    private Future<?> probeFuture;
+    private volatile int probeGeneration = 0;
+    private volatile boolean probeDestroyed = false;
+    private String probeUrl;
+    private Runnable pendingProbe;
 
     private ArrayList<Uri> lastUris = new ArrayList<>();
     private String lastMime = "*/*";
@@ -132,6 +145,26 @@ public class MainActivity extends Activity {
         try { unregisterReceiver(receiver); } catch (Throwable ignored) { }
     }
 
+    @Override
+    protected void onDestroy() {
+        probeDestroyed = true;
+        probeGeneration++;
+        cancelPendingProbe();
+        super.onDestroy();
+    }
+
+    private void cancelPendingProbe() {
+        if (pendingProbe != null) probeHandler.removeCallbacks(pendingProbe);
+        pendingProbe = null;
+        if (probeFuture != null) {
+            // Interrupting Java does not reliably interrupt Python network IO.
+            // The running request finishes, but cannot publish stale results.
+            probeFuture.cancel(false);
+            if (probeFuture instanceof Runnable) PROBE_EXECUTOR.remove((Runnable) probeFuture);
+            probeFuture = null;
+        }
+    }
+
     private void buildUi() {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -147,7 +180,7 @@ public class MainActivity extends Activity {
         TextView title = text("Хвать", 34, TEXT, true);
         root.addView(title);
 
-        TextView version = text("v1.0.2", 13, MUTED, false);
+        TextView version = text("v" + BuildConfig.VERSION_NAME, 13, MUTED, false);
         LinearLayout.LayoutParams versionLp = lp();
         versionLp.topMargin = dp(2);
         root.addView(version, versionLp);
@@ -491,9 +524,9 @@ public class MainActivity extends Activity {
 
     private void showCapabilities() {
         String message =
-                "Видео: YouTube, VK Video, RuTube, Instagram Reels, Pinterest и другие сайты, которые поддерживает движок загрузки.\n\n"
+                "Видео: YouTube, VK Video, RuTube, Instagram Reels, Pinterest и другие поддерживаемые сайты.\n\n"
                 + "Фото и Instagram-карусели: сохраняю все слайды.\n\n"
-                + "MP3 из видео, качество 240P / 480P / 720P / 1080P.\n\n"
+                + "Умею делать MP3 из видео.\n\nКачество видео: 240P / 480P / 720P / 1080P. Размер рядом с качеством — примерный.\n\n"
                 + "Есть очередь, фоновые загрузки, повтор после обрыва, история и кнопки «Открыть / Поделиться / Папка».\n\n"
                 + "Важно: если сайт у тебя открывается только через VPN, не выключай VPN до конца загрузки. "
                 + "Особенно это касается YouTube, Instagram и других ограниченных сервисов.";
@@ -506,56 +539,42 @@ public class MainActivity extends Activity {
     }
 
     private void scheduleProbe(String raw) {
-        resetSizeLabels();
-        probeGeneration++;
-        final int generation = probeGeneration;
         final String url = extractUrl(raw);
-
-        probeHandler.removeCallbacksAndMessages(null);
-        if (url == null) return;
-
-        probeHandler.postDelayed(() -> runProbe(url, generation), 650);
+        if (java.util.Objects.equals(url, probeUrl)) return;
+        probeUrl = url;
+        resetSizeLabels();
+        final int generation = ++probeGeneration;
+        cancelPendingProbe();
+        if (url == null || probeDestroyed) return;
+        pendingProbe = () -> runProbe(url, generation);
+        probeHandler.postDelayed(pendingProbe, 650);
     }
 
     private void runProbe(String url, int generation) {
-        recommendation.setText(recommendation.getText() + " · считаю размер…");
-
-        new Thread(() -> {
+        if (probeDestroyed || generation != probeGeneration) return;
+        final Context appContext = getApplicationContext();
+        probeFuture = PROBE_EXECUTOR.submit(() -> {
+            if (probeDestroyed || generation != probeGeneration) return;
             try {
                 synchronized (Python.class) {
-                    if (!Python.isStarted()) {
-                        Python.start(new AndroidPlatform(getApplicationContext()));
-                    }
+                    if (!Python.isStarted()) Python.start(new AndroidPlatform(appContext));
                 }
-
-                PyObject result = Python.getInstance()
-                        .getModule("probe")
-                        .callAttr("probe", url);
-
+                if (probeDestroyed || generation != probeGeneration) return;
+                PyObject result = Python.getInstance().getModule("probe").callAttr("probe", url);
                 JSONObject sizes = new JSONObject(result.toJava(String.class));
-
                 runOnUiThread(() -> {
-                    if (generation != probeGeneration) return;
-                    String current = extractUrl(urlBox.getText().toString());
-                    if (current == null || !current.equals(url)) return;
-
+                    if (probeDestroyed || generation != probeGeneration || isFinishing()) return;
+                    if (!url.equals(extractUrl(urlBox.getText().toString()))) return;
                     applySizeLabel(mode240, "240P · эконом", sizes.optLong("240", 0));
                     applySizeLabel(mode480, "480P", sizes.optLong("480", 0));
                     applySizeLabel(mode720, "720P", sizes.optLong("720", 0));
                     applySizeLabel(mode1080, "1080P", sizes.optLong("1080", 0));
                     applySizeLabel(modeMp3, "MP3 из видео", sizes.optLong("mp3", 0));
-
-                    updateRecommendation(urlBox.getText().toString());
                 });
-
-            } catch (Throwable ignored) {
-                runOnUiThread(() -> {
-                    if (generation == probeGeneration) {
-                        updateRecommendation(urlBox.getText().toString());
-                    }
-                });
+            } catch (Exception ignored) {
+                // Optional metadata: keep the ordinary buttons on any failure.
             }
-        }, "hvati-size-probe").start();
+        });
     }
 
     private void resetSizeLabels() {
@@ -573,7 +592,7 @@ public class MainActivity extends Activity {
 
     private String formatApproxSize(long bytes) {
         double mb = bytes / (1024.0 * 1024.0);
-        if (mb < 0.1) return "<0.1 МБ";
+        if (mb < 1) return "<1 МБ";
         if (mb < 1000) return String.format(Locale.getDefault(), "%.0f МБ", mb);
         return String.format(Locale.getDefault(), "%.1f ГБ", mb / 1024.0);
     }

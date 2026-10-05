@@ -1,176 +1,92 @@
+"""Optional metadata only. No media downloader, postprocessing or output files."""
 import json
 import math
 
 from yt_dlp import YoutubeDL
+from media_formats import YOUTUBE_AUDIO, is_youtube, video_format
 
 
-def _is_youtube(url):
-    low = (url or "").lower()
-    return any(x in low for x in ("youtube.com/", "youtu.be/", "youtube-nocookie.com/"))
+def _positive(value):
+    try:
+        value = float(value)
+        return value if math.isfinite(value) and value > 0 else 0
+    except (TypeError, ValueError, OverflowError):
+        return 0
 
 
 def _size_of(fmt, duration):
     if not fmt:
         return 0
-    value = fmt.get("filesize") or fmt.get("filesize_approx")
-    if value:
-        try:
-            return int(value)
-        except Exception:
-            pass
-
-    rate = fmt.get("tbr") or fmt.get("abr")
-    if rate and duration:
-        try:
-            # yt-dlp reports kb/s in kilobits per second.
-            return int(float(rate) * 1000.0 / 8.0 * float(duration))
-        except Exception:
-            pass
-    return 0
+    for key in ("filesize", "filesize_approx"):
+        size = _positive(fmt.get(key))
+        if size:
+            return int(size)
+    rate = _positive(fmt.get("tbr"))
+    if not rate:
+        rate = _positive(fmt.get("vbr")) + _positive(fmt.get("abr"))
+    duration = _positive(fmt.get("duration")) or _positive(duration)
+    return int(rate * 1000 / 8 * duration) if rate and duration else 0
 
 
-def _video_score(fmt, limit, prefer_mp4=False, muxed=False):
-    if not fmt:
-        return (-1, -1, -1, -1)
-    height = fmt.get("height") or 0
-    if height and height > limit:
-        return (-1, -1, -1, -1)
-
-    vcodec = fmt.get("vcodec")
-    acodec = fmt.get("acodec")
-    if not vcodec or vcodec == "none":
-        return (-1, -1, -1, -1)
-    if muxed and (not acodec or acodec == "none"):
-        return (-1, -1, -1, -1)
-    if not muxed and acodec and acodec != "none":
-        # Prefer video-only for YouTube because the downloader merges audio.
-        audio_penalty = 0
-    else:
-        audio_penalty = 1
-
-    ext_bonus = 1 if prefer_mp4 and fmt.get("ext") == "mp4" else 0
-    return (
-        int(height or 0),
-        ext_bonus,
-        int(fmt.get("width") or 0),
-        float(fmt.get("tbr") or 0),
-    )
+def _select(ydl, formats, spec):
+    # yt-dlp has already sorted these formats by its own preference policy.
+    # Use its selector, not a separate height/bitrate approximation of 'best'.
+    selector = ydl.build_format_selector(spec)
+    context = {
+        "formats": formats,
+        "has_merged_format": any(
+            "none" not in (f.get("acodec"), f.get("vcodec")) for f in formats),
+        "incomplete_formats": (
+            all(f.get("vcodec") == "none" for f in formats)
+            or all(f.get("acodec") == "none" for f in formats)),
+    }
+    return next(iter(selector(context)), None)
 
 
-def _best_audio(formats):
-    candidates = []
-    for fmt in formats:
-        if (fmt.get("vcodec") in (None, "none")
-                and fmt.get("acodec") not in (None, "none")):
-            candidates.append(fmt)
-    if not candidates:
-        return None
-    return max(
-        candidates,
-        key=lambda f: (
-            1 if f.get("ext") in ("m4a", "mp4") else 0,
-            float(f.get("abr") or f.get("tbr") or 0),
-            int(f.get("filesize") or f.get("filesize_approx") or 0),
-        ),
-    )
-
-
-def _best_video_only(formats, limit):
-    candidates = [
-        f for f in formats
-        if f.get("vcodec") not in (None, "none")
-        and f.get("acodec") in (None, "none")
-        and (not f.get("height") or f.get("height") <= limit)
-    ]
-    if not candidates:
-        return None
-    return max(
-        candidates,
-        key=lambda f: (
-            int(f.get("height") or 0),
-            1 if f.get("ext") == "mp4" else 0,
-            int(f.get("width") or 0),
-            float(f.get("tbr") or 0),
-        ),
-    )
-
-
-def _best_muxed(formats, limit):
-    candidates = [
-        f for f in formats
-        if f.get("vcodec") not in (None, "none")
-        and f.get("acodec") not in (None, "none")
-        and (not f.get("height") or f.get("height") <= limit)
-    ]
-    if not candidates:
-        return None
-    return max(
-        candidates,
-        key=lambda f: (
-            int(f.get("height") or 0),
-            1 if f.get("ext") == "mp4" else 0,
-            int(f.get("width") or 0),
-            float(f.get("tbr") or 0),
-        ),
-    )
+def estimate(ydl, info, youtube):
+    # A carousel/playlist can contain several different files. Do not label it
+    # with the first slide's size, or accidentally expand the whole playlist.
+    if not info or info.get("_type") in ("playlist", "multi_video"):
+        return {}
+    formats = info.get("formats") or ([info] if info.get("url") else [])
+    duration = _positive(info.get("duration"))
+    result = {}
+    audio = _select(ydl, formats, YOUTUBE_AUDIO) if youtube else None
+    for mode in ("240", "480", "720", "1080"):
+        selected = _select(ydl, formats, video_format(mode, youtube))
+        size = _size_of(selected, duration)
+        if youtube:
+            audio_size = _size_of(audio, duration)
+            # A partial estimate is misleading; leave the label alone unless
+            # both streams can be estimated. Mux/container overhead is ignored.
+            size = size + audio_size if size and audio_size else 0
+        result[mode] = size
+    result["mp3"] = int(duration * 192000 / 8) if duration else 0
+    return result
 
 
 def probe(url):
+    youtube = is_youtube(url)
     opts = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
+        "extract_flat": "in_playlist",
+        "playlistend": 1,
         "skip_download": True,
-        "socket_timeout": 15,
-        "retries": 1,
-        "extractor_retries": 1,
+        "cachedir": False,
+        "check_formats": False,
+        "format": "best",
+        "ignore_no_formats_error": True,
+        "socket_timeout": 12,
+        "retries": 0,
+        "extractor_retries": 0,
     }
-
-    youtube = _is_youtube(url)
     if youtube:
-        opts["extractor_args"] = {
-            "youtube": {
-                "player_client": ["android"],
-            }
-        }
-
-    with YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-
-    if info and info.get("_type") == "playlist":
-        entries = info.get("entries") or []
-        info = next((x for x in entries if x), info)
-
-    formats = (info or {}).get("formats") or []
-    duration = (info or {}).get("duration") or 0
-
-    result = {
-        "title": (info or {}).get("title") or "",
-        "duration": duration,
-    }
-
-    audio = _best_audio(formats)
-
-    for mode, limit in (("240", 240), ("480", 480), ("720", 720), ("1080", 1080)):
-        size = 0
-        if youtube:
-            video = _best_video_only(formats, limit)
-            if video:
-                size += _size_of(video, duration)
-                size += _size_of(audio, duration)
-            else:
-                size = _size_of(_best_muxed(formats, limit), duration)
-        else:
-            size = _size_of(_best_muxed(formats, limit), duration)
-            if not size:
-                size = _size_of(_best_video_only(formats, limit), duration)
-                if size and audio:
-                    size += _size_of(audio, duration)
-
-        result[mode] = int(size or 0)
-
-    # libmp3lame q:a 2 usually lands around 170-210 kbps. 192 kbps is
-    # deliberately only an estimate for the UI.
-    result["mp3"] = int(float(duration or 0) * 192000.0 / 8.0) if duration else 0
-
-    return json.dumps(result, ensure_ascii=False)
+        opts["extractor_args"] = {"youtube": {"player_client": ["android"]}}
+    try:
+        with YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            return json.dumps(estimate(ydl, info, youtube), ensure_ascii=False)
+    except Exception:
+        return "{}"

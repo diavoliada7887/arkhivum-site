@@ -243,8 +243,12 @@ public class DownloadService extends Service {
         try {
             ensureEnoughSpace();
 
-            if (!Python.isStarted()) {
-                Python.start(new AndroidPlatform(getApplicationContext()));
+            // The optional metadata worker may initialize Python concurrently.
+            // Keep this inside the download worker, after foreground promotion.
+            synchronized (Python.class) {
+                if (!Python.isStarted()) {
+                    Python.start(new AndroidPlatform(getApplicationContext()));
+                }
             }
 
             AtomicBoolean monitorRunning = new AtomicBoolean(true);

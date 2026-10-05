@@ -71,7 +71,7 @@ public class ShareActivity extends Activity {
             case "480": return "480P";
             case "720": return "720P";
             case "1080": return "1080P";
-            case "mp3": return "MP3";
+            case "mp3": return "MP3 из видео";
             case "images": return "Фото / карусель · всё";
             default: return mode;
         }
