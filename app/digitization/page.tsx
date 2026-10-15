@@ -3,6 +3,7 @@ import { DirectionNav } from "../DirectionNav";
 import { sitePath } from "../site-path";
 import Link from "next/link";
 import styles from "./digitization.module.css";
+import { digitizationTasks } from "./tasks";
 import {
   CaseCard,
   ContactBand,
@@ -17,61 +18,22 @@ export const metadata: Metadata = {
     "Оцифровка книг, документов, периодики и архивных фондов. Оборудование, проекты, цены и полный цикл подготовки электронных коллекций.",
 };
 
-/*
- * Two-layer navigation: visitors choose their task, then select a concrete
- * existing service. Keep detail-page URLs and case-study routes unchanged.
- */
-const taskEntries = [
-  {
-    id: "business",
-    kicker: "01 / Документы бизнеса",
-    title: "Документы и архивы предприятий",
-    description:
-      "Договоры, накладные, путевые листы, первичные и кадровые документы. Оцифровка, порядок и быстрый поиск.",
-    image: "/assets/mass-paper-backlog-real.webp",
-  },
-  {
-    id: "books",
-    kicker: "02 / Книги и издания",
-    title: "Оцифровка книг и учебников",
-    description:
-      "Учебники, методички, научные труды, журналы. Бережное сканирование, PDF и распознавание текста.",
-    image: "/assets/rare-book-open.webp",
-  },
-  {
-    id: "collections",
-    kicker: "03 / Специальные фонды",
-    title: "Библиотеки и архивные коллекции",
-    description:
-      "Редкие издания, газеты, историческая периодика и архивные дела. Электронные коллекции и поиск.",
-    image: "/assets/periodicals-1938-spread.jpeg",
-  },
-  {
-    id: "formats",
-    kicker: "04 / Сложные материалы",
-    title: "Карты, чертежи и крупные форматы",
-    description:
-      "Схемы, техническая документация, рулонные материалы и нестандартные оригиналы.",
-    image: "/assets/equipment/widetek-48cl.webp",
-  },
-] as const;
-
 const serviceGroups = [
   {
     id: "business",
     kicker: "Для компаний и организаций",
-    title: "Когда документы мешают работе",
+    title: "Оцифровка документов и загрузка в информационные системы",
     description:
-      "Оцифруем архив организации, разберём накопившиеся бумаги, сохраним порядок дел и подготовим документы к поиску.",
+      "Сканируем документы — от тысячи медицинских карт до архива предприятия. Распознаём текст, индексируем файлы и готовим данные для поиска или загрузки в вашу систему. При необходимости упорядочиваем бумажные оригиналы.",
     slugs: ["mass-digitization", "archive-ordering", "binding"],
   },
   {
     id: "books",
     kicker: "Для частных заказчиков и исследователей",
-    title: "Книгу или методичку — в удобный цифровой формат",
+    title: "Оцифровка книг, газет и журналов",
     description:
-      "Сканируем переплетённые издания, учебники, сборники и журналы. Подберём формат файла и нужную обработку.",
-    slugs: ["books", "periodicals-20-century"],
+      "Сканируем книги, учебники, научные издания, газеты и журналы. Подберём формат файла, при необходимости сделаем PDF и распознавание текста.",
+    slugs: ["books", "newspapers", "periodicals-20-century"],
   },
   {
     id: "collections",
@@ -105,7 +67,7 @@ export default function DigitizationPage() {
             Оцифровка и архивные технологии
           </h1>
           <nav className={styles.categoryGrid} aria-label="Выберите свою задачу">
-            {taskEntries.map((entry) => (
+            {digitizationTasks.map((entry) => (
               <a className={styles.categoryCard} href={`#${entry.id}`} key={entry.id}>
                 <img
                   className={styles.categoryImage}
