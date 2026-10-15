@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactBand, PageShell, SectionHeading } from "./components";
+import { HomeSoftwareVisual } from "./HomeSoftwareVisual";
 import { sitePath } from "./site-path";
 
 export const metadata: Metadata = {
@@ -64,14 +65,8 @@ export default function Home() {
           </div>
         </Link>
         <Link href="/software" className="direction-card">
-          <div className="direction-art direction-art--software-photo">
-            {/* Chris Ried / Unsplash, free to use under the Unsplash License. */}
-            <img
-              src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=1600&amp;q=85"
-              alt="Экран компьютера с программным кодом"
-              loading="lazy"
-              decoding="async"
-            />
+          <div className="direction-art">
+            <HomeSoftwareVisual />
           </div>
           <div className="direction-copy">
             <p className="eyebrow">02 / Программная инженерия</p>
