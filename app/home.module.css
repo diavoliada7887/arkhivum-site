@@ -19,53 +19,61 @@
 .home h1, .home h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -.032em; }
 .home p { margin: 0; }
 
-.header {
+
+/* Use the real shared site header on the home page. Recolour only this
+   instance to fit the dark hero; preserve its typography, dropdown and logo. */
+.home :global(.site-header) {
   background: #091a2b;
   border-bottom: 1px solid rgba(255,255,255,.12);
-  position: relative;
-  z-index: 20;
+  color: #f9f7f3;
+  backdrop-filter: none;
 }
-.headerInner {
+.home :global(.site-header .header-inner) {
   width: min(100% - clamp(32px, 10vw, 160px), 1700px);
   min-height: 78px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: clamp(22px, 3vw, 50px);
+  gap: clamp(16px, 2vw, 30px);
 }
-.brand { display: flex; flex-direction: column; flex-shrink: 0; line-height: 1; gap: 5px; color: var(--home-gold); }
-.brand strong { font: 400 29px/1 Georgia, "Times New Roman", serif; letter-spacing: .055em; }
-.brand span { color: #f2ece6; font-size: 8px; letter-spacing: .24em; white-space: nowrap; }
-.desktopNav { flex: 1; display: flex; align-items: center; justify-content: center; gap: clamp(15px, 2vw, 31px); }
-.desktopNav a { white-space: nowrap; color: #f9f7f3; font-size: 12px; line-height: 1.2; transition: color .2s ease; }
-.desktopNav a:hover { color: var(--home-gold); }
-.headerContact, .primaryButton, .outlineButton, .contactOutline {
+.home :global(.site-header .brand-mark) {
+  border-color: var(--home-gold);
+  color: var(--home-gold);
+}
+.home :global(.site-header .brand strong) { color: var(--home-gold); }
+.home :global(.site-header .brand small) { color: #f2ece6; }
+.home :global(.site-header .desktop-nav) { color: #f9f7f3; }
+.home :global(.site-header .desktop-services-menu > button) { color: #f9f7f3; }
+.home :global(.site-header .desktop-services-dropdown) { color: #20242a; }
+.home :global(.site-header .desktop-services-dropdown a) { color: #20242a; }
+.home :global(.site-header .desktop-services-dropdown .desktop-services-all) { color: #101d31; }
+.home :global(.site-header .header-inner > .button) {
+  background: #e5bb84;
+  color: #101d31;
+  border-color: #e5bb84;
+}
+.home :global(.site-header .header-inner > .button:hover) {
+  background: #f3ce9b;
+  border-color: #f3ce9b;
+}
+.home :global(.site-header .mobile-nav summary) { color: #f9f7f3; }
+.home :global(.site-header .mobile-nav-panel) {
+  background: #faf8f2;
+  color: #20242a;
+  border: 1px solid #d9cfbf;
+}
+
+.primaryButton, .outlineButton, .contactOutline {
   display: inline-flex; justify-content: center; align-items: center; gap: 15px;
   width: max-content; min-height: 44px; padding: 11px 26px; border-radius: 8px;
   font-size: 12px; font-weight: 700; line-height: 1.3;
   white-space: nowrap; transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
 }
-.headerContact { margin-left: auto; color: #111a25; background: #e5bb84; }
-.headerContact span, .primaryButton span, .outlineButton span { font-size: 18px; font-weight: 400; }
-.headerContact:hover, .primaryButton:hover { background: #f3ce9b; transform: translateY(-2px); }
+.primaryButton span, .outlineButton span { font-size: 18px; font-weight: 400; }
+.primaryButton:hover { background: #f3ce9b; transform: translateY(-2px); }
 .outlineButton {
   color: #f9f7f3; border: 1px solid rgba(230,184,125,.95);
   background: rgba(9,24,39,.54);
 }
 .outlineButton:hover { background: rgba(223,180,124,.17); transform: translateY(-2px); }
 .primaryButton { background: #e5bb84; color: #0d1822; border: 1px solid transparent; }
-.mobileNav { display: none; position: relative; margin-left: auto; }
-.mobileNav summary { color: #f9f7f3; cursor: pointer; font-size: 13px; font-weight: 700; list-style: none; }
-.mobileNav summary::-webkit-details-marker { display: none; }
-.mobileNav summary span { margin-left: 7px; color: var(--home-gold); font-size: 18px; }
-.mobileNav nav {
-  position: absolute; top: 42px; right: 0; min-width: 235px; padding: 12px;
-  display: flex; flex-direction: column; background: #10263b; border: 1px solid #dfb47c8c;
-  border-radius: 7px; box-shadow: 0 14px 30px rgba(0,0,0,.38);
-}
-.mobileNav nav a { display: block; padding: 11px 12px; color: #f9f7f3; font-size: 13px; }
-.mobileNav nav a + a { border-top: 1px solid rgba(255,255,255,.08); }
-.mobileNav nav a:hover { background: #25384a; }
 
 .hero {
   min-height: 378px;
@@ -144,11 +152,11 @@
 .cardContent {
   position: relative; z-index: 1; display: flex; flex-direction: column;
   justify-content: flex-start; align-items: flex-start; padding: 42px clamp(29px, 4.3vw, 66px);
-  min-height: 395px; width: min(100%, 530px);
+  min-height: 395px; width: min(100%, 640px);
 }
 .cardKicker { color: #f0e6d9; font-size: 11px; letter-spacing: .07em; line-height: 1.35; margin-bottom: 19px !important; }
 .cardContent h2 {
-  color: #fbf9f5; font-size: clamp(31px, 2.7vw, 44px);
+  color: #fbf9f5; font-size: clamp(30px, 2.45vw, 41px);
   line-height: 1.07; margin: 0 0 23px;
 }
 .cardContent > p:not(.cardKicker) {
@@ -170,15 +178,10 @@
 .contactOutline:hover { background: #f4e8d8; }
 
 @media (max-width: 1360px) {
-  .desktopNav { gap: 14px; }
-  .desktopNav a { font-size: 11px; }
-  .headerInner { gap: 22px; }
-  .brand strong { font-size: 25px; }
-  .headerContact { padding-inline: 15px; }
+  .home :global(.site-header .header-inner) { gap: 18px; }
+  .home :global(.site-header .desktop-nav) { gap: 14px; font-size: 11px; }
 }
 @media (max-width: 1180px) {
-  .desktopNav, .headerContact { display: none; }
-  .mobileNav { display: block; }
   .proofBar { max-width: 100%; gap: 18px; }
   .proofBar > div { font-size: 10px; }
   .heroContent { width: min(635px, 74%); }
@@ -198,10 +201,7 @@
   .cardContent > p:not(.cardKicker) { font-size: 13px; }
 }
 @media (max-width: 480px) {
-  .headerInner, .heroInner { width: calc(100% - 34px); }
-  .headerInner { min-height: 66px; }
-  .brand strong { font-size: 23px; }
-  .brand span { font-size: 6px; }
+  .heroInner { width: calc(100% - 34px); }
   .heroInner { min-height: 574px; padding-top: 39px; }
   .heroContent h1 { font-size: clamp(36px, 10.3vw, 49px); }
   .kicker { font-size: 9px; }
