@@ -10,7 +10,7 @@
   --brass-light: #d2b27c;
   --line: #d9cfbf;
   --white: #fffdf8;
-  --shell: min(1180px, calc(100vw - 48px));
+  --shell: min(1600px, calc(100vw - clamp(36px, 6vw, 112px)));
 }
 
 * { box-sizing: border-box; }
@@ -1478,7 +1478,7 @@ h3 { font-size: clamp(1.4rem, 1.7vw, 1.8rem); letter-spacing: -.02em; }
 .price-notes .button { margin-top: 30px; }
 
 @media (max-width: 980px) {
-  :root { --shell: min(100% - 36px, 760px); }
+  :root { --shell: calc(100vw - 36px); }
   .desktop-nav, .header-inner > .button { display: none; }
   .header-inner { grid-template-columns: 1fr auto; }
   .mobile-nav { position: relative; display: block; }
@@ -1907,4 +1907,21 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px soli
   .technical-flow li > span { margin: 4px 0 0; }
   .server-evidence > img { height: 250px; }
   .direction-card:focus-visible { outline-offset: 2px; }
+}
+
+/* Homepage software photo: real coding workspace rather than a product mockup. */
+.direction-art--software-photo > img {
+  height: 100%;
+  object-fit: cover;
+  object-position: 53% 42%;
+  filter: saturate(.7) contrast(1.08) brightness(.85);
+}
+.direction-card:hover .direction-art--software-photo > img {
+  transform: scale(1.025);
+}
+.direction-card:has(.direction-art--software-photo)::after {
+  background: linear-gradient(180deg, rgba(16,29,49,.2) 0%, rgba(16,29,49,.06) 25%, rgba(16,29,49,.78) 53%, #101d31 100%), linear-gradient(90deg, rgba(16,29,49,.35), transparent 80%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .direction-card:hover .direction-art--software-photo > img { transform: none; }
 }
