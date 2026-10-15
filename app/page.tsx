@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactBand, PageShell, SectionHeading } from "./components";
-import { DataVisual } from "./DirectionNav";
+import { HomeSoftwareVisual } from "./HomeSoftwareVisual";
 import { sitePath } from "./site-path";
 
 export const metadata: Metadata = {
-  title: { absolute: "Архивум — оцифровка, данные и программные решения" },
+  title: { absolute: "Архивум — оцифровка и разработка программного обеспечения" },
   description:
-    "Превращаем информацию в работающие данные. Оцифровка, структурирование информации, автоматизация и разработка прикладных программных решений.",
+    "Сохраняем ценное. Создаём новое. Оцифровка и архивные технологии, разработка ПО, обработка данных и автоматизация процессов.",
 };
 
 export default function Home() {
@@ -17,9 +17,9 @@ export default function Home() {
         <div className="shell">
           <p className="eyebrow">Архивум · информация · технологии</p>
           <h1>
-            Превращаем информацию
+            Сохраняем ценное.
             <br />
-            <em>в работающие данные</em>
+            <em>Создаём новое.</em>
           </h1>
           <nav
             className="home-quick-directions"
@@ -29,12 +29,12 @@ export default function Home() {
               Оцифровка <span aria-hidden="true">↗</span>
             </Link>
             <Link href="/software">
-              Данные и программные решения <span aria-hidden="true">↗</span>
+              Разработка ПО <span aria-hidden="true">↗</span>
             </Link>
           </nav>
           <p className="company-lead">
-            От бумажных документов до цифровых массивов. Оцифровка,
-            структурирование, автоматизация и разработка программных решений.
+            Оцифровка и архивные технологии. Разработка программного обеспечения,
+            обработка данных и автоматизация процессов.
           </p>
         </div>
       </section>
@@ -66,17 +66,18 @@ export default function Home() {
         </Link>
         <Link href="/software" className="direction-card">
           <div className="direction-art">
-            <DataVisual />
+            <HomeSoftwareVisual />
           </div>
           <div className="direction-copy">
-            <p className="eyebrow">02 / Данные и рабочие процессы</p>
+            <p className="eyebrow">02 / Программная инженерия</p>
             <h2>
-              Данные и<br />
-              программные решения
+              Разработка ПО<br />
+              и автоматизация
             </h2>
             <p>
-              Обработка массивов данных, автоматизация документов и рабочих
-              процессов, разработка прикладных программных решений.
+              Разрабатываем прикладные программы, инструменты обработки данных и
+              системы автоматизации. От специализированных утилит до
+              комплексных программных решений.
             </p>
             <span className="direction-action">
               Перейти к разработке <b aria-hidden="true">↗</b>
