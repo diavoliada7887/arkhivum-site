@@ -3,6 +3,7 @@ import { DirectionNav } from "../DirectionNav";
 import { sitePath } from "../site-path";
 import Link from "next/link";
 import { ArchiveShelfLazy } from "../ArchiveShelfLazy";
+import styles from "./digitization.module.css";
 import {
   CaseCard,
   ContactBand,
@@ -25,82 +26,18 @@ export default function DigitizationPage() {
   return (
     <PageShell>
       <DirectionNav current="digitization" />
-      <section className="hero hero-rebuilt">
-        <div className="shell hero-grid">
-          <div className="hero-copy">
-            <p className="eyebrow">Оцифровка · архивная обработка · данные</p>
-            <h1>
-              Оцифровываем фонды.
-              <br />
-              <em>Доводим до системы.</em>
-            </h1>
-            <p className="hero-lead">
-              Книги, газеты, карты, архивные фонды и большие документные
-              массивы. Сканируем, распознаём, упорядочиваем, создаём базы данных
-              и загружаем результат в систему заказчика.
-            </p>
-            <div className="button-row">
-              <Link className="button" href="/contact">
-                Рассчитать проект
-              </Link>
-              <Link className="text-link" href="/experience">
-                Смотреть опыт работ →
-              </Link>
-            </div>
-            <div className="hero-note">
-              <span>Материалы с 1730 года</span>
-              <span>До 1 000 страниц в час</span>
-              <span>Работаем по всей России</span>
-            </div>
-          </div>
-
-          <div className="hero-scanner">
-            <img
-              src={sitePath("/assets/hero-planetary-scanner.webp")}
-              alt="Оцифровка старой книги на планетарном сканере"
-            />
-            <div className="hero-scanner-caption">
-              <strong>Планетарная съёмка</strong>
-              <span>для книг и ветхих оригиналов</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="proof-strip">
-        <div className="shell proof-grid">
-          <div>
-            <strong>≈ 1 млн</strong>
-            <span>страниц в выполненных проектах</span>
-          </div>
-          <div>
-            <strong>1730</strong>
-            <span>год самого раннего материала</span>
-          </div>
-          <div>
-            <strong>до 1 000</strong>
-            <span>страниц в час на потоке</span>
-          </div>
-          <div>
-            <strong>до 5 000</strong>
-            <span>карточек документов в месяц</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-paper">
+      <section className={styles.servicesOpening} aria-labelledby="digitization-heading">
         <div className="shell">
-          <div className="section-title-row">
-            <SectionHeading
-              eyebrow="Услуги"
-              title="Весь путь документа — без разрыва между подрядчиками"
-              text="Можно заказать отдельный этап или полный цикл: от бумажного оригинала до поиска и загрузки данных."
-            />
-            <Link className="text-link" href="/services">
-              Все услуги →
+          <div className={styles.openingTop}>
+            <div>
+              <p className={styles.openingEyebrow}>Направления работы</p>
+              <h1 id="digitization-heading">Оцифровка и архивные технологии</h1>
+            </div>
+            <Link className={styles.projectLink} href="/contact">
+              Рассчитать проект <span aria-hidden="true">↗</span>
             </Link>
           </div>
-          <div className="home-service-grid">
+          <div className={`home-service-grid ${styles.serviceGrid}`}>
             {digitizationServices.map((service, index) => (
               <Link
                 className={`home-service-card${
@@ -122,6 +59,27 @@ export default function DigitizationPage() {
                 <b>{service.price}</b>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="proof-strip">
+        <div className="shell proof-grid">
+          <div>
+            <strong>≈ 1 млн</strong>
+            <span>страниц в выполненных проектах</span>
+          </div>
+          <div>
+            <strong>1730</strong>
+            <span>год самого раннего материала</span>
+          </div>
+          <div>
+            <strong>до 1 000</strong>
+            <span>страниц в час на потоке</span>
+          </div>
+          <div>
+            <strong>до 5 000</strong>
+            <span>карточек документов в месяц</span>
           </div>
         </div>
       </section>

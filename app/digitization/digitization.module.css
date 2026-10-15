@@ -1,0 +1,92 @@
+/* Only the digitization landing page. Shared design and all other routes stay intact. */
+.servicesOpening {
+  padding: clamp(30px, 4.3vw, 60px) 0 clamp(44px, 5vw, 72px);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.openingTop {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px 45px;
+  margin-bottom: 30px;
+}
+.openingTop > div { min-width: 0; }
+.openingEyebrow {
+  margin: 0 0 13px;
+  color: var(--brass);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.openingTop h1 {
+  margin: 0;
+  max-width: 850px;
+  color: var(--navy);
+  font-size: clamp(2.2rem, 3.8vw, 3.55rem);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+.projectLink {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 13px 18px;
+  min-height: 46px;
+  border: 1px solid var(--brass);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 180ms ease;
+}
+.projectLink:hover,
+.projectLink:focus-visible { background: #efe3d0; }
+.projectLink span { color: var(--brass); font-size: 21px; line-height: 1; }
+
+.servicesOpening .serviceGrid {
+  gap: 12px;
+  border: 0;
+}
+.serviceGrid :global(.home-service-card) {
+  min-height: 295px;
+  padding: 24px;
+  border: 1px solid var(--line);
+}
+.serviceGrid :global(.home-service-card:not(.home-service-card-photo)) {
+  background: #f7f3eb;
+}
+.serviceGrid :global(.home-service-card-photo) {
+  background: var(--navy);
+}
+.serviceGrid :global(.home-service-card h3) {
+  margin: 30px 0 12px;
+  font-size: clamp(1.4rem, 1.8vw, 1.85rem);
+  line-height: 1.16;
+}
+.serviceGrid :global(.home-service-card p) {
+  font-size: 13px;
+  line-height: 1.52;
+  margin-bottom: 18px;
+}
+.serviceGrid :global(.home-service-card b) {
+  font-size: 10px;
+}
+
+@media (max-width: 980px) {
+  .openingTop { align-items: start; }
+  .serviceGrid :global(.home-service-card) { min-height: 275px; }
+}
+@media (max-width: 640px) {
+  .openingTop { flex-direction: column; align-items: stretch; margin-bottom: 24px; }
+  .openingTop h1 { font-size: clamp(2rem, 8vw, 2.9rem); }
+  .projectLink { width: max-content; }
+  .servicesOpening .serviceGrid { gap: 9px; }
+  .serviceGrid :global(.home-service-card) { min-height: 245px; padding: 24px; }
+  .serviceGrid :global(.home-service-card h3) { margin: 22px 0 10px; font-size: 25px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .projectLink { transition: none; }
+}
