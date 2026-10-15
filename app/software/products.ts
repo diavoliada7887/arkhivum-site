@@ -1,5 +1,8 @@
+import type { VisualKey } from "./visuals";
+
 export type SoftwareProduct = {
-  slug: string;
+  slug: VisualKey;
+  benefit: string;
   title: string;
   label: string;
   group: "engineering" | "applications";
@@ -21,6 +24,8 @@ export type SoftwareProduct = {
 export const softwareProducts: SoftwareProduct[] = [
   {
     slug: "sboeboy",
+    benefit:
+      "Находить нарушения структуры до передачи массива и контролировать массовые изменения.",
     title: "Контроль и восстановление структуры файловых массивов",
     label: "Сбоебой",
     group: "engineering",
@@ -55,6 +60,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "pdfa-pipeline",
+    benefit:
+      "Получать законченные поисковые документы из папок с изображениями без ручной сборки каждого дела.",
     title: "Производственный конвейер PDF/A",
     label: "PDF/A · линия v13",
     group: "engineering",
@@ -82,6 +89,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "document-extraction",
+    benefit:
+      "Переносить реквизиты из документов в проверяемые записи для таблицы или информационной системы.",
     title: "Извлечение и структурирование данных из документов",
     label: "Экстрактор · Изя",
     group: "engineering",
@@ -110,6 +119,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "pdf-bookmarks",
+    benefit:
+      "Быстро находить разделы и статьи внутри большого PDF благодаря иерархическому оглавлению.",
     title: "Навигация в PDF по таблице содержания",
     label: "Закладки PDF по Excel",
     group: "engineering",
@@ -136,6 +147,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "image-processing",
+    benefit:
+      "Приводить партии изображений к согласованной геометрии, размеру и формату перед дальнейшей обработкой.",
     title: "Комплекс обработки документных изображений",
     label: "Геометрия · размеры · дефекты",
     group: "engineering",
@@ -171,6 +184,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "source-monitoring",
+    benefit:
+      "Получать отобранные сведения вместо ручного просмотра всего потока лотов.",
     title: "Мониторинг торгов и внешней информации",
     label: "От источника до уведомления",
     group: "engineering",
@@ -198,6 +213,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "hvati",
+    benefit:
+      "Выбирать нужный формат медиаматериала и сохранять результат в понятном мобильном сценарии.",
     title: "Хвать",
     label: "Android · медиаматериалы",
     group: "applications",
@@ -223,6 +240,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "profit",
+    benefit:
+      "Видеть бюджет по периодам, сохранять историю расчётов и восстанавливать состояние приложения.",
     title: "Профицит",
     label: "Веб-приложение · финансовое планирование",
     group: "applications",
@@ -249,6 +268,8 @@ export const softwareProducts: SoftwareProduct[] = [
   },
   {
     slug: "rpg-life",
+    benefit:
+      "Связывать повседневные действия, задачи и прогресс в сохраняемую пользовательскую историю.",
     title: "RPG Life",
     label: "PWA · состояние и прогресс",
     group: "applications",

@@ -1,6 +1,7 @@
 import { sitePath } from "./site-path";
 import type { Metadata } from "next";
 import "./globals.css";
+import "./software/solutions.css";
 
 export const metadata: Metadata = {
   title: {

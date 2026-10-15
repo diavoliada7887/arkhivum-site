@@ -91,7 +91,7 @@ test("portfolio separates engineering from applications and provides substantive
     assert.ok(catalogue.includes(`/arkhivum-site/software/products/${slug}/`));
     const page = main(read(`software/products/${slug}`));
     for (const section of [
-      "Что реализовано",
+      "Что уже реализовано",
       "Входные данные",
       "Выходной результат",
       "Применение и готовность",
@@ -143,6 +143,73 @@ test("all HTML fragment links resolve and each new page has a unique title and o
         `Missing/duplicate title: ${file}`,
       );
       titles.add(title);
+    }
+  }
+});
+
+test("both direction shortcuts precede the large homepage panels", () => {
+  const html = main(read());
+  const shortcutNav =
+    html.match(/<nav class="home-quick-directions"[\s\S]*?<\/nav>/)?.[0] ?? "";
+  for (const route of ["digitization", "software"])
+    assert.ok(shortcutNav.includes(`/arkhivum-site/${route}/`));
+  assert.ok(
+    html.indexOf("home-quick-directions") < html.indexOf("company-directions"),
+  );
+});
+
+test("software navigation has four primary controls and discoverable native submenus", () => {
+  const html = main(read("software"));
+  const nav = html.match(/<nav class="software-nav[\s\S]*?<\/nav>/)?.[0] ?? "";
+  assert.match(nav, /<details[^>]*class="competence-menu"/);
+  assert.match(nav, /<summary>/);
+  for (const route of ["databases-integrations", "server-solutions"])
+    assert.ok(nav.includes(`/arkhivum-site/software/${route}/`));
+  const primary = nav.replace(/<details[\s\S]*?<\/details>/, "");
+  assert.equal((primary.match(/<a\b/g) ?? []).length + 1, 4);
+});
+
+test("each product has a distinct labelled visual, a mobile asset, and an early contact action", () => {
+  const slugs = [
+    "sboeboy",
+    "pdfa-pipeline",
+    "document-extraction",
+    "pdf-bookmarks",
+    "image-processing",
+    "source-monitoring",
+    "hvati",
+    "profit",
+    "rpg-life",
+  ];
+  const sourceAssets = new URL("../public/assets/solutions/", import.meta.url);
+  for (const slug of slugs) {
+    const html = main(read(`software/products/${slug}`));
+    assert.ok(html.includes(`data-visual="${slug}"`), slug);
+    assert.ok(
+      html.includes(`/arkhivum-site/assets/solutions/${slug}.svg`),
+      slug,
+    );
+    assert.ok(
+      html.includes(`/arkhivum-site/assets/solutions/${slug}-mobile.svg`),
+      slug,
+    );
+    assert.ok(
+      html.indexOf("/arkhivum-site/contact/") < html.indexOf("data-visual="),
+      slug,
+    );
+    assert.match(
+      html,
+      ["hvati", "profit", "rpg-life"].includes(slug)
+        ? /Концепт интерфейса · условные данные/
+        : /Схема принципа работы · условные данные/,
+    );
+    for (const suffix of ["", "-mobile"]) {
+      const svg = readFileSync(
+        new URL(`${slug}${suffix}.svg`, sourceAssets),
+        "utf8",
+      );
+      assert.match(svg, /<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/);
+      assert.ok(!/<script|<foreignObject|href=|url\(https?:/i.test(svg), slug);
     }
   }
 });
