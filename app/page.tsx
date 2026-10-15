@@ -35,7 +35,7 @@ export default function Home() {
                   обеспечения, обработка данных и автоматизация процессов.
                 </p>
                 <div className={styles.actions}>
-                  <Link className={styles.primaryButton} href="/services">Наши услуги <span aria-hidden="true">→</span></Link>
+                  <Link className={styles.primaryButton} href="/digitization">Оцифровка <span aria-hidden="true">→</span></Link>
                   <Link className={styles.outlineButton} href="/software/products">Наши разработки</Link>
                 </div>
               </div>
@@ -61,7 +61,7 @@ export default function Home() {
                   Оцифровка документов, книг, газет, журналов, карт и архивных
                   фондов. Упорядочивание, переплёт и работа с большими массивами.
                 </p>
-                <Link href="/services" className={styles.primaryButton}>Перейти к услугам <span aria-hidden="true">→</span></Link>
+                <Link href="/digitization" className={styles.primaryButton}>Перейти к оцифровке <span aria-hidden="true">→</span></Link>
               </div>
             </article>
 
