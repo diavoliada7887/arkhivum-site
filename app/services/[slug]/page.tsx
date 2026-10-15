@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { DirectionNav } from "../../DirectionNav";
 import Link from "next/link";
 import { StaticRedirect } from "../../StaticRedirect";
 import { sitePath } from "../../site-path";
@@ -8,12 +10,33 @@ import {
   PageShell,
   RelatedCases,
 } from "../../components";
-import { serviceBySlug, services } from "../../content";
+import { serviceBySlug, services, softwareServiceRoutes } from "../../content";
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return [...services.map((service) => ({ slug: service.slug })), { slug: "organization-binding" }];
+  return [
+    ...services.map((service) => ({ slug: service.slug })),
+    { slug: "organization-binding" },
+  ];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const service = serviceBySlug[slug];
+  return service
+    ? {
+        title: service.title,
+        description: service.short,
+        alternates: {
+          canonical: `https://diavoliada7887.github.io${sitePath(softwareServiceRoutes[slug] ?? `/services/${slug}`)}/`,
+        },
+      }
+    : {};
 }
 
 export default async function ServicePage({
@@ -27,6 +50,30 @@ export default async function ServicePage({
   }
   const service = serviceBySlug[slug];
   if (!service) notFound();
+  const softwareRoute = softwareServiceRoutes[slug];
+  if (softwareRoute)
+    return (
+      <PageShell>
+        <DirectionNav current="software" />
+        <StaticRedirect to={softwareRoute} />
+        <section className="page-hero">
+          <div className="shell">
+            <Breadcrumbs
+              items={[
+                { label: "Главная", href: "/" },
+                { label: "Данные и ПО", href: "/software" },
+                { label: service.title },
+              ]}
+            />
+            <h1>{service.title}</h1>
+            <p>Услуга находится в самостоятельном программном направлении.</p>
+            <Link className="button" href={softwareRoute}>
+              Открыть подробное описание
+            </Link>
+          </div>
+        </section>
+      </PageShell>
+    );
   const hasEditorialHero =
     service.slug === "books" ||
     service.slug === "newspapers" ||
@@ -37,6 +84,7 @@ export default async function ServicePage({
 
   return (
     <PageShell>
+      <DirectionNav current="digitization" />
       <section
         className={`detail-hero ${
           hasEditorialHero
@@ -48,6 +96,7 @@ export default async function ServicePage({
           <Breadcrumbs
             items={[
               { label: "Главная", href: "/" },
+              { label: "Оцифровка", href: "/digitization" },
               { label: "Услуги", href: "/services" },
               { label: service.title },
             ]}
@@ -55,9 +104,7 @@ export default async function ServicePage({
           <div className="detail-hero-grid">
             <div>
               <p
-                className={`eyebrow ${
-                  hasEditorialHero ? "eyebrow-light" : ""
-                }`}
+                className={`eyebrow ${hasEditorialHero ? "eyebrow-light" : ""}`}
               >
                 {service.eyebrow}
               </p>
@@ -110,7 +157,10 @@ export default async function ServicePage({
                     : ""
                 }`}
               >
-                <img src={sitePath(service.image)} alt={service.imageAlt ?? ""} />
+                <img
+                  src={sitePath(service.image)}
+                  alt={service.imageAlt ?? ""}
+                />
                 {service.heroCaption ? (
                   <figcaption>{service.heroCaption}</figcaption>
                 ) : null}
@@ -136,7 +186,10 @@ export default async function ServicePage({
         <section className="section section-paper service-showcase">
           <div className="shell service-showcase-grid">
             <figure>
-              <img src={sitePath(service.showcase.image)} alt={service.showcase.alt} />
+              <img
+                src={sitePath(service.showcase.image)}
+                alt={service.showcase.alt}
+              />
               <figcaption>{service.showcase.caption}</figcaption>
             </figure>
             <div>
@@ -168,7 +221,10 @@ export default async function ServicePage({
                 <article>
                   <strong>5+ лет</strong>
                   <h3>Налоговые и бухгалтерские документы</h3>
-                  <p>Первичка и регистры хранятся не менее пяти лет после отчётного года.</p>
+                  <p>
+                    Первичка и регистры хранятся не менее пяти лет после
+                    отчётного года.
+                  </p>
                   <a
                     className="mass-rule-link"
                     href="https://www.consultant.ru/document/cons_doc_LAW_122855/"
@@ -181,7 +237,10 @@ export default async function ServicePage({
                 <article>
                   <strong>по виду договора</strong>
                   <h3>Договоры и приложения</h3>
-                  <p>Срок зависит от предмета; для многих документов отсчёт продолжается после исполнения обязательств.</p>
+                  <p>
+                    Срок зависит от предмета; для многих документов отсчёт
+                    продолжается после исполнения обязательств.
+                  </p>
                   <a
                     className="mass-rule-link"
                     href="https://www.consultant.ru/document/cons_doc_LAW_345020/"
@@ -194,7 +253,10 @@ export default async function ServicePage({
                 <article>
                   <strong>25 лет</strong>
                   <h3>Медицинские карты</h3>
-                  <p>Карты стационарных и амбулаторных пациентов относятся к документам длительного хранения.</p>
+                  <p>
+                    Карты стационарных и амбулаторных пациентов относятся к
+                    документам длительного хранения.
+                  </p>
                   <a
                     className="mass-rule-link"
                     href="https://www.consultant.ru/document/cons_doc_LAW_121777/59797ed054f359ba63f8b8b0aa1da9f15183b7a9/"
@@ -207,7 +269,10 @@ export default async function ServicePage({
                 <article>
                   <strong>50/75 лет</strong>
                   <h3>Кадровые документы</h3>
-                  <p>Трудовые договоры, личные дела и сведения о стаже могут храниться десятилетиями.</p>
+                  <p>
+                    Трудовые договоры, личные дела и сведения о стаже могут
+                    храниться десятилетиями.
+                  </p>
                   <a
                     className="mass-rule-link"
                     href="https://www.consultant.ru/document/cons_doc_LAW_345020/"
@@ -232,10 +297,38 @@ export default async function ServicePage({
                   <p className="eyebrow eyebrow-light">Где особенно больно</p>
                   <h2>Массивы, в которых цена долгого поиска слишком высока</h2>
                   <div className="mass-sectors-grid">
-                    <article><span>01</span><h3>Суды и юридические службы</h3><p>Дела, приложения, доказательства, доверенности и договоры с оригинальными подписями.</p></article>
-                    <article><span>02</span><h3>Больницы и медицинские центры</h3><p>Карты пациентов, истории болезни, результаты исследований и информированные согласия.</p></article>
-                    <article><span>03</span><h3>Страховые компании</h3><p>Полисы, заявления, акты, экспертные заключения и документы по страховым случаям.</p></article>
-                    <article><span>04</span><h3>Логистика и транспорт</h3><p>Накладные, путевые листы, акты, реестры рейсов и подтверждающие документы.</p></article>
+                    <article>
+                      <span>01</span>
+                      <h3>Суды и юридические службы</h3>
+                      <p>
+                        Дела, приложения, доказательства, доверенности и
+                        договоры с оригинальными подписями.
+                      </p>
+                    </article>
+                    <article>
+                      <span>02</span>
+                      <h3>Больницы и медицинские центры</h3>
+                      <p>
+                        Карты пациентов, истории болезни, результаты
+                        исследований и информированные согласия.
+                      </p>
+                    </article>
+                    <article>
+                      <span>03</span>
+                      <h3>Страховые компании</h3>
+                      <p>
+                        Полисы, заявления, акты, экспертные заключения и
+                        документы по страховым случаям.
+                      </p>
+                    </article>
+                    <article>
+                      <span>04</span>
+                      <h3>Логистика и транспорт</h3>
+                      <p>
+                        Накладные, путевые листы, акты, реестры рейсов и
+                        подтверждающие документы.
+                      </p>
+                    </article>
                   </div>
                 </div>
                 <figure className="mass-sectors-photo">
@@ -243,9 +336,7 @@ export default async function ServicePage({
                     src={sitePath("/assets/mass-paper-backlog-real.webp")}
                     alt="Документы и папки, сложенные в переполненные коробки"
                   />
-                  <figcaption>
-                    Архив до систематизации и оцифровки
-                  </figcaption>
+                  <figcaption>Архив до систематизации и оцифровки</figcaption>
                 </figure>
               </div>
             </div>
@@ -297,10 +388,9 @@ export default async function ServicePage({
                 <h2>Цвет остаётся частью документа</h2>
                 <p>
                   Пожелтевшая бумага, полиграфические краски, мелкие подписи,
-                  орнаменты и тоновые переходы передаются без грубого
-                  осветления и потери деталей. Цифровая копия сохраняет не
-                  только содержание издания, но и особенности оригинальной
-                  печати.
+                  орнаменты и тоновые переходы передаются без грубого осветления
+                  и потери деталей. Цифровая копия сохраняет не только
+                  содержание издания, но и особенности оригинальной печати.
                 </p>
                 <div className="periodical-quality-note">
                   <strong>1938</strong>
@@ -357,7 +447,9 @@ export default async function ServicePage({
               </div>
               <div>
                 <p className="eyebrow">Собственное программное решение</p>
-                <h2>Структуру больших документов формируем нашим инструментом</h2>
+                <h2>
+                  Структуру больших документов формируем нашим инструментом
+                </h2>
               </div>
               <p>
                 Мы разработали скрипт, который расставляет названия и уровни
@@ -380,14 +472,29 @@ export default async function ServicePage({
                   диссертацию, техническую документацию или архивную подшивку.
                 </p>
               </div>
-              <div className="periodical-flow" aria-label="Этапы создания интерактивного содержания">
-                <article><span>01</span><strong>Готовый PDF</strong></article>
+              <div
+                className="periodical-flow"
+                aria-label="Этапы создания интерактивного содержания"
+              >
+                <article>
+                  <span>01</span>
+                  <strong>Готовый PDF</strong>
+                </article>
                 <b aria-hidden="true">→</b>
-                <article><span>02</span><strong>Разбор структуры</strong></article>
+                <article>
+                  <span>02</span>
+                  <strong>Разбор структуры</strong>
+                </article>
                 <b aria-hidden="true">→</b>
-                <article><span>03</span><strong>Интерактивное содержание</strong></article>
+                <article>
+                  <span>03</span>
+                  <strong>Интерактивное содержание</strong>
+                </article>
                 <b aria-hidden="true">→</b>
-                <article><span>04</span><strong>Быстрые переходы</strong></article>
+                <article>
+                  <span>04</span>
+                  <strong>Быстрые переходы</strong>
+                </article>
               </div>
               <p className="periodical-standalone-note">
                 Оцифровка и формирование интерактивного содержания —
@@ -405,7 +512,9 @@ export default async function ServicePage({
             <div className="shell service-content-shell ordering-purpose-grid">
               <div>
                 <p className="eyebrow">Архив как система</p>
-                <h2>От массива документов — к сформированным и учтённым делам</h2>
+                <h2>
+                  От массива документов — к сформированным и учтённым делам
+                </h2>
               </div>
               <div className="ordering-purpose-copy">
                 <p>
@@ -417,10 +526,9 @@ export default async function ServicePage({
                 <p>
                   Мы систематизируем документы на уровне всего фонда и каждого
                   отдельного дела. Базовая подшивка сформированных дел в
-                  стандартные архивные папки входит в стоимость
-                  упорядочивания. Другие варианты переплёта и оформления
-                  согласовываем отдельно — с учётом срока хранения, формата и
-                  состояния документов.
+                  стандартные архивные папки входит в стоимость упорядочивания.
+                  Другие варианты переплёта и оформления согласовываем отдельно
+                  — с учётом срока хранения, формата и состояния документов.
                 </p>
               </div>
             </div>
@@ -478,22 +586,34 @@ export default async function ServicePage({
                 <article>
                   <span>01</span>
                   <h3>Архивная опись</h3>
-                  <p>Перечень единиц хранения с индексами, заголовками, крайними датами, количеством листов и примечаниями.</p>
+                  <p>
+                    Перечень единиц хранения с индексами, заголовками, крайними
+                    датами, количеством листов и примечаниями.
+                  </p>
                 </article>
                 <article>
                   <span>02</span>
                   <h3>Внутренняя опись</h3>
-                  <p>Составляется внутри сложного или особо ценного дела и раскрывает его документный состав.</p>
+                  <p>
+                    Составляется внутри сложного или особо ценного дела и
+                    раскрывает его документный состав.
+                  </p>
                 </article>
                 <article>
                   <span>03</span>
                   <h3>Лист-заверитель</h3>
-                  <p>Подтверждает объём дела и фиксирует все особенности нумерации и физического состава.</p>
+                  <p>
+                    Подтверждает объём дела и фиксирует все особенности
+                    нумерации и физического состава.
+                  </p>
                 </article>
                 <article>
                   <span>04</span>
                   <h3>Историческая справка</h3>
-                  <p>Описывает историю фондообразователя, его функции и структуру, состав документов и изменения фонда.</p>
+                  <p>
+                    Описывает историю фондообразователя, его функции и
+                    структуру, состав документов и изменения фонда.
+                  </p>
                 </article>
               </div>
             </div>

@@ -2,8 +2,9 @@ import { sitePath } from "./site-path";
 import Link from "next/link";
 import {
   cases,
-  serviceMenuGroups,
+  digitizationMenuGroups,
   services,
+  serviceHref,
   type CaseStudy,
 } from "./content";
 import { DesktopNav } from "./DesktopNav";
@@ -16,7 +17,7 @@ export function Brand() {
       </span>
       <span>
         <strong>АРХИВУМ</strong>
-        <small>цифровое наследие</small>
+        <small>информация и технологии</small>
       </span>
     </Link>
   );
@@ -36,21 +37,18 @@ export function Header() {
           <div className="mobile-nav-panel">
             <details className="mobile-services-menu">
               <summary>
-                Услуги
+                Оцифровка
                 <span aria-hidden="true">+</span>
               </summary>
               <div>
-                <Link className="mobile-services-all" href="/services">
-                  Все услуги
+                <Link className="mobile-services-all" href="/digitization">
+                  Оцифровка и архивные технологии
                 </Link>
-                {serviceMenuGroups.map((group) => (
+                {digitizationMenuGroups.map((group) => (
                   <section className="mobile-services-group" key={group.title}>
                     <p>{group.title}</p>
                     {group.services.map((service) => (
-                      <Link
-                        key={service.slug}
-                        href={`/services/${service.slug}`}
-                      >
+                      <Link key={service.slug} href={serviceHref(service)}>
                         {service.title}
                       </Link>
                     ))}
@@ -63,7 +61,14 @@ export function Header() {
                 ))}
               </div>
             </details>
-            <Link href="/experience">Опыт работ</Link>
+            <Link href="/software">Данные и ПО</Link>
+            <Link href="/software/databases-integrations">
+              Базы данных и интеграции
+            </Link>
+            <Link href="/software/server-solutions">Серверные решения</Link>
+            <Link href="/software/products">Инженерное портфолио</Link>
+            <Link href="/services">Все услуги оцифровки</Link>
+            <Link href="/experience">Опыт и проекты</Link>
             <Link href="/equipment">Оборудование</Link>
             <Link href="/about">О компании</Link>
             <Link href="/prices">Цены</Link>
@@ -82,16 +87,20 @@ export function Footer() {
         <div>
           <Brand />
           <p className="footer-intro">
-            Оцифровываем культурное наследие и превращаем большие документные
-            массивы в работающие цифровые фонды.
+            Превращаем информацию в работающие данные. Оцифровка, обработка
+            массивов и программные решения для рабочих процессов.
           </p>
         </div>
         <div>
           <p className="footer-title">Направления</p>
-          <Link href="/services/books">Книги</Link>
-          <Link href="/services/newspapers">Газеты</Link>
-          <Link href="/services/archival-files">Архивные фонды</Link>
-          <Link href="/services/databases-integrations">Базы данных</Link>
+          <Link href="/digitization">Оцифровка и архивные технологии</Link>
+          <Link href="/software">Данные и программные решения</Link>
+          <Link href="/services">Услуги оцифровки</Link>
+          <Link href="/software/databases-integrations">
+            Базы данных и интеграции
+          </Link>
+          <Link href="/software/server-solutions">Серверные решения</Link>
+          <Link href="/software/products">Инженерное портфолио</Link>
         </div>
         <div>
           <p className="footer-title">О компании</p>
@@ -151,7 +160,7 @@ export function ServiceCard({
   index: number;
 }) {
   return (
-    <Link className="service-card" href={`/services/${service.slug}`}>
+    <Link className="service-card" href={serviceHref(service)}>
       <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
       <div>
         <p className="eyebrow">{service.eyebrow}</p>

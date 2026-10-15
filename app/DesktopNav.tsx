@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { serviceMenuGroups } from "./content";
+import { digitizationMenuGroups, serviceHref } from "./content";
 
 export function DesktopNav() {
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -51,7 +51,7 @@ export function DesktopNav() {
           aria-controls="desktop-services-dropdown"
           onClick={() => setServicesOpen((open) => !open)}
         >
-          Услуги
+          Оцифровка
           <span aria-hidden="true">⌄</span>
         </button>
         <div
@@ -60,27 +60,42 @@ export function DesktopNav() {
         >
           <Link
             className="desktop-services-all"
-            href="/services"
+            href="/digitization"
             onClick={closeServices}
           >
-            <span>Все услуги</span>
+            <span>Оцифровка и архивные технологии</span>
             <b aria-hidden="true">→</b>
           </Link>
+          <div className="direction-menu-links">
+            <Link href="/services" onClick={closeServices}>
+              Все услуги
+            </Link>
+            <Link href="/equipment" onClick={closeServices}>
+              Оборудование
+            </Link>
+            <Link href="/prices" onClick={closeServices}>
+              Цены
+            </Link>
+          </div>
           <div className="desktop-services-groups">
-            {serviceMenuGroups.map((group) => (
+            {digitizationMenuGroups.map((group) => (
               <section className="desktop-services-group" key={group.title}>
                 <p>{group.title}</p>
                 {group.services.map((service) => (
                   <Link
                     key={service.slug}
-                    href={`/services/${service.slug}`}
+                    href={serviceHref(service)}
                     onClick={closeServices}
                   >
                     {service.title}
                   </Link>
                 ))}
                 {group.extraLinks.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={closeServices}>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeServices}
+                  >
                     {item.title}
                   </Link>
                 ))}
@@ -89,17 +104,17 @@ export function DesktopNav() {
           </div>
         </div>
       </div>
-      <Link href="/experience" onClick={closeServices}>
-        Опыт работ
+      <Link href="/software" onClick={closeServices}>
+        Данные и ПО
       </Link>
-      <Link href="/equipment" onClick={closeServices}>
-        Оборудование
+      <Link href="/experience" onClick={closeServices}>
+        Опыт и проекты
       </Link>
       <Link href="/about" onClick={closeServices}>
         О компании
       </Link>
-      <Link href="/prices" onClick={closeServices}>
-        Цены
+      <Link href="/contact" onClick={closeServices}>
+        Контакты
       </Link>
     </nav>
   );

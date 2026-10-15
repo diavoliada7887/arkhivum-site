@@ -1,17 +1,15 @@
 import { sitePath } from "./site-path";
 import type { Metadata } from "next";
 import "./globals.css";
+import "./software/solutions.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Архивум — оцифровка архивов, книг и газет",
+    default: "Архивум — оцифровка, данные и программные решения",
     template: "%s — Архивум",
   },
   description:
-    "Оцифровка книг, газет, карт и архивных документов. Упорядочивание, переплёт, OCR, базы данных и загрузка во внешние системы.",
-  other: {
-    "codex-preview": "development",
-  },
+    "Оцифровка и архивные технологии. Обработка данных, автоматизация документов и рабочих процессов, разработка прикладных программных решений.",
   icons: {
     icon: sitePath("/favicon.svg"),
     shortcut: sitePath("/favicon.svg"),
