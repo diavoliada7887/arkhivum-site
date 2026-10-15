@@ -1,0 +1,250 @@
+.scene {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 77% 17%, rgba(126, 155, 168, .25), transparent 52%),
+    radial-gradient(ellipse at 12% 42%, rgba(167, 129, 76, .2), transparent 55%),
+    #101d31;
+  color: #f8f5ec;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.scene::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: .27;
+  background-image:
+    linear-gradient(rgba(210, 178, 124, .15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(210, 178, 124, .15) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(180deg, #000 5%, transparent 76%);
+}
+
+.halo {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  left: 24%;
+  top: -180px;
+  border: 1px solid rgba(210, 178, 124, .2);
+  border-radius: 50%;
+  box-shadow: 0 0 0 70px rgba(210, 178, 124, .035), 0 0 0 140px rgba(210, 178, 124, .02);
+}
+
+.editor {
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  left: 5%;
+  width: 79%;
+  max-width: 465px;
+  height: 273px;
+  overflow: hidden;
+  border: 1px solid rgba(198, 211, 218, .44);
+  border-radius: 9px;
+  background: #14283b;
+  box-shadow: 0 24px 48px rgba(4, 12, 22, .55);
+  transform: perspective(900px) rotateY(-8deg) rotateZ(-4deg);
+  transform-origin: 50% 50%;
+}
+
+.editorBar {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  height: 43px;
+  padding: 0 13px;
+  border-bottom: 1px solid rgba(210, 178, 124, .19);
+  background: #1c3447;
+}
+
+.dots { display: flex; gap: 5px; }
+.dots i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a7814c;
+}
+.dots i:nth-child(2) { background: #81999f; }
+.dots i:nth-child(3) { background: #7a9e88; }
+.editorFilename { font-size: 11px; color: #eee6d7; letter-spacing: .02em; }
+.editorLanguage { margin-left: auto; color: #c6a877; font-size: 9px; letter-spacing: .12em; }
+
+.code { padding: 19px 11px 9px; }
+.code > div {
+  display: flex;
+  align-items: baseline;
+  min-height: 23px;
+  white-space: nowrap;
+  font-size: clamp(9px, 1vw, 11px);
+  letter-spacing: .015em;
+}
+.code > div > span {
+  flex: 0 0 28px;
+  color: #688399;
+  text-align: right;
+  margin-right: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.code code {
+  color: #d1e1e9;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-weight: 400;
+}
+.code code b { color: #c9a5df; font-weight: 500; }
+.code code em { color: #9cd4c3; font-style: normal; }
+.code code strong { color: #e0bd79; font-weight: 400; }
+
+.editorStatus {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 13px;
+  background: #203b4e;
+  color: #d4ddd9;
+  font-size: 9px;
+  letter-spacing: .02em;
+}
+.editorStatus span:first-child { display: flex; align-items: center; gap: 7px; }
+.editorStatus i { width: 6px; height: 6px; border-radius: 50%; background: #b2d6a9; }
+
+.application {
+  position: absolute;
+  z-index: 2;
+  top: 17%;
+  right: 5%;
+  width: 39%;
+  max-width: 223px;
+  padding: 17px;
+  border: 1px solid rgba(214, 201, 170, .82);
+  border-radius: 17px;
+  background: #f6f1e8;
+  box-shadow: 0 24px 40px rgba(4, 12, 22, .65);
+  color: #152337;
+  transform: perspective(900px) rotateY(-8deg) rotateZ(6deg);
+}
+.applicationBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 19px;
+}
+.applicationMark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #172c40;
+  color: #e3c18b;
+  font-family: Georgia, serif;
+  font-size: 23px;
+}
+.applicationBar strong { display: block; font-size: 19px; font-weight: 700; line-height: 1.15; }
+.applicationBar small {
+  display: block;
+  margin-top: 3px;
+  color: #7d6b59;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+.appFieldLabel { color: #766f67; font-size: 9px; margin-bottom: 7px; }
+.appField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 9px 10px;
+  margin-bottom: 17px;
+  border: 1px solid #d6cdc0;
+  border-radius: 5px;
+  color: #8b8984;
+  font-size: 11px;
+  background: #fffefa;
+}
+.appField > span:last-child { color: #a7814c; font-size: 15px; }
+.qualityRow { display: flex; gap: 6px; margin-bottom: 16px; }
+.qualityRow span {
+  border: 1px solid #cfb88f;
+  border-radius: 4px;
+  padding: 7px 8px;
+  color: #6c5939;
+  font-size: 9px;
+  font-weight: 700;
+}
+.qualityRow span:last-child { border-color: #ded8ce; color: #77736c; }
+.appAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 5px;
+  background: #172c40;
+  color: #fffdf8;
+  font-size: 11px;
+  font-weight: 700;
+}
+.appAction span { color: #e3c18b; font-size: 15px; }
+
+.pipeline {
+  position: absolute;
+  z-index: 3;
+  top: 52%;
+  left: 10%;
+  width: 78%;
+  max-width: 440px;
+  padding: 12px 17px 15px;
+  border: 1px solid rgba(210, 178, 124, .48);
+  border-radius: 6px;
+  background: rgba(15, 32, 47, .93);
+  box-shadow: 0 18px 32px rgba(4, 12, 22, .4);
+  transform: rotate(-2deg);
+}
+.pipelineLabel {
+  display: block;
+  margin-bottom: 10px;
+  color: #d2b27c;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.pipelineStages { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.pipelineStages span { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pipelineStages b { color: #d2b27c; font-weight: 400; font-size: 15px; }
+
+@media (max-width: 980px) {
+  .editor { width: 86%; left: 2%; }
+  .application { width: 45%; right: 3%; padding: 13px; }
+  .pipeline { left: 5%; width: 88%; }
+  .pipelineStages span { font-size: 10px; }
+}
+
+@media (max-width: 640px) {
+  .editor { top: 12%; left: 4%; width: 82%; height: 251px; }
+  .code { padding: 13px 8px; }
+  .code > div { font-size: 9px; min-height: 21px; }
+  .code > div > span { flex-basis: 20px; margin-right: 9px; }
+  .application { top: 20%; right: 4%; width: 40%; max-width: 188px; padding: 11px; }
+  .applicationBar { gap: 6px; margin-bottom: 12px; }
+  .applicationMark { flex-basis: 24px; height: 24px; font-size: 17px; border-radius: 5px; }
+  .applicationBar strong { font-size: 16px; }
+  .applicationBar small { font-size: 6px; letter-spacing: 0; }
+  .appField { margin-bottom: 11px; padding: 7px; }
+  .appFieldLabel { margin-bottom: 5px; font-size: 8px; }
+  .qualityRow { gap: 4px; margin-bottom: 11px; }
+  .qualityRow span { font-size: 7px; padding: 5px; }
+  .appAction { padding: 8px; font-size: 9px; }
+  .pipeline { top: 54%; left: 6%; width: 88%; padding: 10px 12px 12px; }
+  .pipelineLabel { font-size: 8px; margin-bottom: 7px; }
+  .pipelineStages span { font-size: 10px; }
+}
