@@ -37,6 +37,7 @@ export default async function ServicePage({
 
   return (
     <PageShell>
+      {slug === "archive-software" && <div className="shell legacy-software-note"><p>Разработка для архивов — часть нашего программного направления.</p><Link className="text-link" href="/software">Все задачи с данными и ПО →</Link></div>}
       <section
         className={`detail-hero ${
           hasEditorialHero
