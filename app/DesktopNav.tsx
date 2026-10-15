@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { digitizationMenuGroups, serviceHref } from "./content";
+import { digitizationTasks } from "./digitization/tasks";
 
 export function DesktopNav() {
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -78,27 +78,15 @@ export function DesktopNav() {
             </Link>
           </div>
           <div className="desktop-services-groups">
-            {digitizationMenuGroups.map((group) => (
-              <section className="desktop-services-group" key={group.title}>
-                <p>{group.title}</p>
-                {group.services.map((service) => (
-                  <Link
-                    key={service.slug}
-                    href={serviceHref(service)}
-                    onClick={closeServices}
-                  >
-                    {service.title}
-                  </Link>
-                ))}
-                {group.extraLinks.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeServices}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
+            {digitizationTasks.map((task) => (
+              <section className="desktop-services-group" key={task.id}>
+                <Link
+                  href={`/digitization/#${task.id}`}
+                  onClick={closeServices}
+                >
+                  {task.title}
+                  <span aria-hidden="true"> ↗</span>
+                </Link>
               </section>
             ))}
           </div>
