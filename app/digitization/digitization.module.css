@@ -1,8 +1,7 @@
-/* Only the digitization landing page. Shared design and all other routes stay intact. */
+/* Landing-only styles: do not change the shared site or existing service pages. */
 .servicesOpening {
-  padding: clamp(12px, 1.7vw, 24px) 0 clamp(30px, 3.2vw, 48px);
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
+  padding: clamp(12px, 1.8vw, 25px) 0 clamp(20px, 3vw, 38px);
+  background: #0a1b2c;
 }
 .visuallyHidden {
   position: absolute;
@@ -15,41 +14,205 @@
   white-space: nowrap;
   border: 0;
 }
-
-.servicesOpening .serviceGrid {
-  gap: 12px;
-  border: 0;
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.7vw, 20px);
 }
-.serviceGrid :global(.home-service-card) {
-  min-height: 295px;
-  padding: 24px;
+.categoryCard {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(209, 178, 124, .3);
+  border-radius: 11px;
+  background: #101d31;
+  color: #fffdf8;
+  transition: border-color 220ms ease, transform 220ms ease;
+}
+.categoryCard::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 20, 33, .08) 0%, rgba(8, 20, 33, .43) 33%, rgba(8, 20, 33, .91) 76%, rgba(8, 20, 33, .98) 100%),
+    linear-gradient(90deg, rgba(8, 20, 33, .45), transparent 75%);
+  pointer-events: none;
+}
+.categoryCard:hover {
+  border-color: #d2b27c;
+  transform: translateY(-3px);
+}
+.categoryCard:focus-visible { outline: 3px solid #d2b27c; outline-offset: 4px; }
+.categoryImage {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: saturate(.76);
+  transition: transform 480ms ease;
+}
+.categoryCard:hover .categoryImage { transform: scale(1.045); }
+.categoryContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  width: 100%;
+  min-height: clamp(365px, 31vw, 425px);
+  padding: clamp(23px, 3vw, 38px);
+}
+.categoryKicker {
+  margin-bottom: 11px;
+  color: #e4c495;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+}
+.categoryTitle {
+  max-width: 550px;
+  margin-bottom: 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(29px, 2.85vw, 41px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -.025em;
+}
+.categoryDescription {
+  max-width: 505px;
+  color: rgba(255, 253, 248, .87);
+  font-size: clamp(13px, 1.08vw, 15px);
+  line-height: 1.58;
+}
+.categoryAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+  gap: 18px;
+  margin-top: 24px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 253, 248, .28);
+  color: #e4c495;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+.categoryAction > span { font-size: 25px; font-weight: 400; line-height: 1; }
+
+.serviceDirectory { background: var(--cream); }
+.serviceGroup {
+  scroll-margin-top: 96px;
+  padding: clamp(47px, 6vw, 77px) 0;
+  border-bottom: 1px solid var(--line);
+}
+.serviceGroup:nth-child(even) { background: var(--paper); }
+.groupIntroduction { margin-bottom: clamp(22px, 3vw, 35px); }
+.groupKicker {
+  margin-bottom: 11px;
+  color: var(--brass);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.groupIntroduction h2 {
+  max-width: 890px;
+  margin-bottom: 12px;
+  color: var(--navy);
+  font-size: clamp(29px, 3vw, 44px);
+}
+.groupIntroduction > p:last-child {
+  max-width: 770px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.groupServiceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 13px;
+}
+.groupServiceCard {
+  display: flex;
+  min-height: 214px;
+  flex-direction: column;
+  padding: clamp(20px, 2.3vw, 29px);
   border: 1px solid var(--line);
+  background: #fffdf8;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
-.serviceGrid :global(.home-service-card:not(.home-service-card-photo)) {
-  background: #f7f3eb;
+.groupServiceCard:hover {
+  border-color: var(--brass);
+  background: #f7efe3;
+  transform: translateY(-2px);
 }
-.serviceGrid :global(.home-service-card-photo) {
-  background: var(--navy);
+.groupServiceCard:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+.groupServiceCard > strong {
+  margin-bottom: 12px;
+  color: var(--navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 1.75vw, 26px);
+  font-weight: 400;
+  line-height: 1.2;
 }
-.serviceGrid :global(.home-service-card h3) {
-  margin: 30px 0 12px;
-  font-size: clamp(1.4rem, 1.8vw, 1.85rem);
-  line-height: 1.16;
-}
-.serviceGrid :global(.home-service-card p) {
+.groupServiceCard > span:not(.groupServiceAction) {
+  color: var(--muted);
   font-size: 13px;
-  line-height: 1.52;
-  margin-bottom: 18px;
+  line-height: 1.55;
 }
-.serviceGrid :global(.home-service-card b) {
-  font-size: 10px;
+.groupServiceAction {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 22px;
+  color: var(--brass);
+  font-size: 12px;
+  font-weight: 700;
 }
+.groupServiceAction > span { font-size: 20px; font-weight: 400; line-height: 1; }
+.otherTask {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 23px;
+  padding: 32px 20px 38px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.otherTask a { color: var(--navy); font-weight: 700; border-bottom: 1px solid var(--brass); }
+.otherTask a:hover { color: var(--brass); }
 
-@media (max-width: 980px) {
-  .serviceGrid :global(.home-service-card) { min-height: 275px; }
+@media (max-width: 780px) {
+  .categoryGrid { grid-template-columns: 1fr; }
+  .categoryContent { min-height: 355px; }
+  .categoryTitle { font-size: clamp(29px, 5vw, 39px); }
+  .categoryDescription { font-size: 14px; }
+  .groupServiceGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 640px) {
-  .servicesOpening .serviceGrid { gap: 9px; }
-  .serviceGrid :global(.home-service-card) { min-height: 245px; padding: 24px; }
-  .serviceGrid :global(.home-service-card h3) { margin: 22px 0 10px; font-size: 25px; }
+@media (max-width: 520px) {
+  .categoryGrid { gap: 10px; }
+  .categoryContent { min-height: 330px; padding: 23px; }
+  .categoryKicker { font-size: 10px; }
+  .categoryTitle { font-size: 30px; }
+  .categoryDescription { font-size: 13px; }
+  .groupServiceGrid { grid-template-columns: 1fr; }
+  .groupServiceCard { min-height: 0; }
+  .otherTask { align-items: flex-start; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .categoryCard, .categoryImage, .groupServiceCard { transition: none; }
+  .categoryCard:hover, .categoryCard:hover .categoryImage, .groupServiceCard:hover { transform: none; }
 }
