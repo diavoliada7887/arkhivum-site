@@ -2,12 +2,12 @@ import { sitePath } from "./site-path";
 import Link from "next/link";
 import {
   cases,
-  digitizationMenuGroups,
   services,
   serviceHref,
   type CaseStudy,
 } from "./content";
 import { DesktopNav } from "./DesktopNav";
+import { digitizationTasks } from "./digitization/tasks";
 
 export function Brand() {
   return (
@@ -44,19 +44,11 @@ export function Header() {
                 <Link className="mobile-services-all" href="/digitization">
                   Оцифровка и архивные технологии
                 </Link>
-                {digitizationMenuGroups.map((group) => (
-                  <section className="mobile-services-group" key={group.title}>
-                    <p>{group.title}</p>
-                    {group.services.map((service) => (
-                      <Link key={service.slug} href={serviceHref(service)}>
-                        {service.title}
-                      </Link>
-                    ))}
-                    {group.extraLinks.map((item) => (
-                      <Link key={item.href} href={item.href}>
-                        {item.title}
-                      </Link>
-                    ))}
+                {digitizationTasks.map((task) => (
+                  <section className="mobile-services-group" key={task.id}>
+                    <Link href={`/digitization/#${task.id}`}>
+                      {task.title}
+                    </Link>
                   </section>
                 ))}
               </div>
