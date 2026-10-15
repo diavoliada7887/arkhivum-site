@@ -17,6 +17,80 @@ export const metadata: Metadata = {
     "Оцифровка книг, документов, периодики и архивных фондов. Оборудование, проекты, цены и полный цикл подготовки электронных коллекций.",
 };
 
+/*
+ * Two-layer navigation: visitors choose their task, then select a concrete
+ * existing service. Keep detail-page URLs and case-study routes unchanged.
+ */
+const taskEntries = [
+  {
+    id: "business",
+    kicker: "01 / Документы бизнеса",
+    title: "Документы и архивы предприятий",
+    description:
+      "Договоры, накладные, путевые листы, первичные и кадровые документы. Оцифровка, порядок и быстрый поиск.",
+    image: "/assets/mass-paper-backlog-real.webp",
+  },
+  {
+    id: "books",
+    kicker: "02 / Книги и издания",
+    title: "Оцифровка книг и учебников",
+    description:
+      "Учебники, методички, научные труды, журналы. Бережное сканирование, PDF и распознавание текста.",
+    image: "/assets/rare-book-open.webp",
+  },
+  {
+    id: "collections",
+    kicker: "03 / Специальные фонды",
+    title: "Библиотеки и архивные коллекции",
+    description:
+      "Редкие издания, газеты, историческая периодика и архивные дела. Электронные коллекции и поиск.",
+    image: "/assets/periodicals-1938-spread.jpeg",
+  },
+  {
+    id: "formats",
+    kicker: "04 / Сложные материалы",
+    title: "Карты, чертежи и крупные форматы",
+    description:
+      "Схемы, техническая документация, рулонные материалы и нестандартные оригиналы.",
+    image: "/assets/equipment/widetek-48cl.webp",
+  },
+] as const;
+
+const serviceGroups = [
+  {
+    id: "business",
+    kicker: "Для компаний и организаций",
+    title: "Когда документы мешают работе",
+    description:
+      "Оцифруем архив организации, разберём накопившиеся бумаги, сохраним порядок дел и подготовим документы к поиску.",
+    slugs: ["mass-digitization", "archive-ordering", "binding"],
+  },
+  {
+    id: "books",
+    kicker: "Для частных заказчиков и исследователей",
+    title: "Книгу или методичку — в удобный цифровой формат",
+    description:
+      "Сканируем переплетённые издания, учебники, сборники и журналы. Подберём формат файла и нужную обработку.",
+    slugs: ["books", "periodicals-20-century"],
+  },
+  {
+    id: "collections",
+    kicker: "Для библиотек, музеев и архивов",
+    title: "Исторические фонды и сложные издания",
+    description:
+      "Оцифровка редких книг, газет, периодики и архивных дел с сохранением особенностей оригинала и структуры коллекции.",
+    slugs: ["books", "newspapers", "periodicals-20-century", "archival-files"],
+  },
+  {
+    id: "formats",
+    kicker: "Для инженерной документации",
+    title: "Большие листы и нестандартные оригиналы",
+    description:
+      "Работаем с техническими чертежами, схемами и крупными картами. Подбираем безопасную технологию по материалу.",
+    slugs: ["maps-drawings"],
+  },
+] as const;
+
 export default function DigitizationPage() {
   const featured = ["kronstadt", "rare-books", "shalya", "saratov"]
     .map((slug) => cases.find((item) => item.slug === slug))
@@ -30,31 +104,66 @@ export default function DigitizationPage() {
           <h1 className={styles.visuallyHidden} id="digitization-heading">
             Оцифровка и архивные технологии
           </h1>
-          <div className={`home-service-grid ${styles.serviceGrid}`}>
-            {digitizationServices.map((service, index) => (
-              <Link
-                className={`home-service-card${
-                  service.homeImage ? " home-service-card-photo" : ""
-                }`}
-                href={`/services/${service.slug}`}
-                key={service.slug}
-              >
-                {service.homeImage ? (
-                  <img
-                    className="home-service-card-background"
-                    src={sitePath(service.homeImage)}
-                    alt={service.homeImageAlt ?? ""}
-                  />
-                ) : null}
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{service.title}</h3>
-                <p>{service.short}</p>
-                <b>{service.price}</b>
-              </Link>
+          <nav className={styles.categoryGrid} aria-label="Выберите свою задачу">
+            {taskEntries.map((entry) => (
+              <a className={styles.categoryCard} href={`#${entry.id}`} key={entry.id}>
+                <img
+                  className={styles.categoryImage}
+                  src={sitePath(entry.image)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className={styles.categoryContent}>
+                  <span className={styles.categoryKicker}>{entry.kicker}</span>
+                  <strong className={styles.categoryTitle}>{entry.title}</strong>
+                  <span className={styles.categoryDescription}>{entry.description}</span>
+                  <span className={styles.categoryAction}>
+                    Выбрать услуги <span aria-hidden="true">↗</span>
+                  </span>
+                </span>
+              </a>
             ))}
-          </div>
+          </nav>
         </div>
       </section>
+
+      <div className={styles.serviceDirectory}>
+        {serviceGroups.map((group) => (
+          <section className={styles.serviceGroup} id={group.id} key={group.id} aria-label={group.title}>
+            <div className="shell">
+              <div className={styles.groupIntroduction}>
+                <p className={styles.groupKicker}>{group.kicker}</p>
+                <h2>{group.title}</h2>
+                <p>{group.description}</p>
+              </div>
+              <div className={styles.groupServiceGrid}>
+                {group.slugs.map((slug) => {
+                  const service = digitizationServices.find((item) => item.slug === slug);
+                  if (!service) return null;
+                  return (
+                    <Link
+                      href={`/services/${service.slug}`}
+                      className={styles.groupServiceCard}
+                      key={slug}
+                    >
+                      <strong>{service.title}</strong>
+                      <span>{service.short}</span>
+                      <span className={styles.groupServiceAction}>
+                        Подробнее <span aria-hidden="true">↗</span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        ))}
+        <div className={styles.otherTask}>
+          <span>Не нашли свою задачу?</span>
+          <Link href="/contact">Расскажите, что нужно оцифровать ↗</Link>
+        </div>
+      </div>
 
       <section className="proof-strip">
         <div className="shell proof-grid">
