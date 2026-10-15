@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DirectionNav } from "../DirectionNav";
 import { sitePath } from "../site-path";
 import Link from "next/link";
-import { ArchiveShelfLazy } from "../ArchiveShelfLazy";
 import styles from "./digitization.module.css";
 import {
   CaseCard,
@@ -28,15 +27,9 @@ export default function DigitizationPage() {
       <DirectionNav current="digitization" />
       <section className={styles.servicesOpening} aria-labelledby="digitization-heading">
         <div className="shell">
-          <div className={styles.openingTop}>
-            <div>
-              <p className={styles.openingEyebrow}>Направления работы</p>
-              <h1 id="digitization-heading">Оцифровка и архивные технологии</h1>
-            </div>
-            <Link className={styles.projectLink} href="/contact">
-              Рассчитать проект <span aria-hidden="true">↗</span>
-            </Link>
-          </div>
+          <h1 className={styles.visuallyHidden} id="digitization-heading">
+            Оцифровка и архивные технологии
+          </h1>
           <div className={`home-service-grid ${styles.serviceGrid}`}>
             {digitizationServices.map((service, index) => (
               <Link
@@ -83,8 +76,6 @@ export default function DigitizationPage() {
           </div>
         </div>
       </section>
-
-      <ArchiveShelfLazy />
 
       <section className="section home-capabilities">
         <div className="shell home-capabilities-grid">
