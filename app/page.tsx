@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Footer } from "./components";
+import { Footer, Header } from "./components";
 import { sitePath } from "./site-path";
 import styles from "./home.module.css";
 
@@ -10,45 +10,11 @@ export const metadata: Metadata = {
     "Сохраняем ценное. Создаём новое. Оцифровка и архивные технологии, разработка программного обеспечения, обработка данных и автоматизация процессов.",
 };
 
-const navItems = [
-  { href: "/digitization", label: "Оцифровка" },
-  { href: "/software", label: "Разработка ПО" },
-  { href: "/equipment", label: "Оборудование" },
-  { href: "/experience", label: "Проекты" },
-  { href: "/about", label: "О компании" },
-  { href: "/prices", label: "Цены" },
-  { href: "/contact", label: "Контакты" },
-];
-
 export default function Home() {
   return (
     <>
       <div className={styles.home}>
-        <header className={styles.header}>
-          <div className={styles.headerInner}>
-            <Link href="/" className={styles.brand} aria-label="Архивум — главная">
-              <strong>АРХИВУМ</strong>
-              <span>ИНФОРМАЦИЯ И ТЕХНОЛОГИИ</span>
-            </Link>
-            <nav className={styles.desktopNav} aria-label="Основная навигация">
-              {navItems.map(({ href, label }) => (
-                <Link href={href} key={href}>{label}</Link>
-              ))}
-            </nav>
-            <Link className={styles.headerContact} href="/contact">
-              Обсудить проект <span aria-hidden="true">→</span>
-            </Link>
-            <details className={styles.mobileNav}>
-              <summary>Меню <span aria-hidden="true">☰</span></summary>
-              <nav aria-label="Мобильная навигация">
-                {navItems.map(({ href, label }) => (
-                  <Link href={href} key={href}>{label}</Link>
-                ))}
-                <Link href="/contact">Обсудить проект →</Link>
-              </nav>
-            </details>
-          </div>
-        </header>
+        <Header />
 
         <main>
           <section className={styles.hero}>
@@ -90,7 +56,7 @@ export default function Home() {
               <div className={styles.cardShade} aria-hidden="true" />
               <div className={styles.cardContent}>
                 <p className={styles.cardKicker}>01 / ОЦИФРОВКА И АРХИВНЫЕ УСЛУГИ</p>
-                <h2>Сохраняем<br />информацию<br />для будущего</h2>
+                <h2>Оцифровка и архивные технологии</h2>
                 <p>
                   Оцифровка документов, книг, газет, журналов, карт и архивных
                   фондов. Упорядочивание, переплёт и работа с большими массивами.
@@ -110,7 +76,7 @@ export default function Home() {
               <div className={styles.cardShade} aria-hidden="true" />
               <div className={styles.cardContent}>
                 <p className={styles.cardKicker}>02 / РАЗРАБОТКА ПО И АВТОМАТИЗАЦИЯ</p>
-                <h2>Инженерные<br />решения<br />для реальных задач</h2>
+                <h2>Разработка программного обеспечения и автоматизация</h2>
                 <p>
                   Разрабатываем прикладные программы, инструменты обработки
                   данных и системы автоматизации. От специализированных утилит
