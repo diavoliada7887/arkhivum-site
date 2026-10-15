@@ -1,114 +1,137 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ContactBand, PageShell, SectionHeading } from "./components";
-import { HomeSoftwareVisual } from "./HomeSoftwareVisual";
+import { Footer } from "./components";
 import { sitePath } from "./site-path";
+import styles from "./home.module.css";
 
 export const metadata: Metadata = {
-  title: { absolute: "Архивум — оцифровка и разработка программного обеспечения" },
+  title: { absolute: "Архивум — оцифровка, разработка ПО и автоматизация" },
   description:
-    "Сохраняем ценное. Создаём новое. Оцифровка и архивные технологии, разработка ПО, обработка данных и автоматизация процессов.",
+    "Сохраняем ценное. Создаём новое. Оцифровка и архивные технологии, разработка программного обеспечения, обработка данных и автоматизация процессов.",
 };
+
+const navItems = [
+  { href: "/digitization", label: "Оцифровка" },
+  { href: "/software", label: "Разработка ПО" },
+  { href: "/equipment", label: "Оборудование" },
+  { href: "/experience", label: "Проекты" },
+  { href: "/about", label: "О компании" },
+  { href: "/prices", label: "Цены" },
+  { href: "/contact", label: "Контакты" },
+];
 
 export default function Home() {
   return (
-    <PageShell>
-      <section className="company-hero">
-        <div className="shell">
-          <p className="eyebrow">Архивум · информация · технологии</p>
-          <h1>
-            Сохраняем ценное.
-            <br />
-            <em>Создаём новое.</em>
-          </h1>
-          <nav
-            className="home-quick-directions"
-            aria-label="Выбрать направление"
-          >
-            <Link href="/digitization">
-              Оцифровка <span aria-hidden="true">↗</span>
+    <>
+      <div className={styles.home}>
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <Link href="/" className={styles.brand} aria-label="Архивум — главная">
+              <strong>АРХИВУМ</strong>
+              <span>ИНФОРМАЦИЯ И ТЕХНОЛОГИИ</span>
             </Link>
-            <Link href="/software">
-              Разработка ПО <span aria-hidden="true">↗</span>
+            <nav className={styles.desktopNav} aria-label="Основная навигация">
+              {navItems.map(({ href, label }) => (
+                <Link href={href} key={href}>{label}</Link>
+              ))}
+            </nav>
+            <Link className={styles.headerContact} href="/contact">
+              Обсудить проект <span aria-hidden="true">→</span>
             </Link>
-          </nav>
-          <p className="company-lead">
-            Оцифровка и архивные технологии. Разработка программного обеспечения,
-            обработка данных и автоматизация процессов.
-          </p>
-        </div>
-      </section>
-      <section
-        className="company-directions shell"
-        aria-label="Два направления работы"
-      >
-        <Link href="/digitization" className="direction-card">
-          <div className="direction-art">
-            <img
-              src={sitePath("/assets/hero-planetary-scanner.webp")}
-              alt="Оцифровка книги на планетарном сканере"
-            />
+            <details className={styles.mobileNav}>
+              <summary>Меню <span aria-hidden="true">☰</span></summary>
+              <nav aria-label="Мобильная навигация">
+                {navItems.map(({ href, label }) => (
+                  <Link href={href} key={href}>{label}</Link>
+                ))}
+                <Link href="/contact">Обсудить проект →</Link>
+              </nav>
+            </details>
           </div>
-          <div className="direction-copy">
-            <p className="eyebrow">01 / Оригиналы и цифровые фонды</p>
-            <h2>
-              Оцифровка и<br />
-              архивные технологии
-            </h2>
-            <p>
-              Оцифровка книг, документов, периодики и архивных фондов. От
-              бережной съёмки оригиналов до подготовки электронных коллекций.
-            </p>
-            <span className="direction-action">
-              Перейти к оцифровке <b aria-hidden="true">↗</b>
-            </span>
-          </div>
-        </Link>
-        <Link href="/software" className="direction-card">
-          <div className="direction-art">
-            <HomeSoftwareVisual />
-          </div>
-          <div className="direction-copy">
-            <p className="eyebrow">02 / Программная инженерия</p>
-            <h2>
-              Разработка ПО<br />
-              и автоматизация
-            </h2>
-            <p>
-              Разрабатываем прикладные программы, инструменты обработки данных и
-              системы автоматизации. От специализированных утилит до
-              комплексных программных решений.
-            </p>
-            <span className="direction-action">
-              Перейти к разработке <b aria-hidden="true">↗</b>
-            </span>
-          </div>
-        </Link>
-      </section>
-      <section className="section company-experience">
-        <div className="shell company-experience-grid">
-          <SectionHeading
-            eyebrow="Единая инженерная компетенция"
-            title="Знаем, что происходит с информацией на практике"
-            text="В проектах оцифровки мы работаем со сложными документными массивами: распознаём, проверяем, связываем файлы с описаниями и готовим данные для информационных систем. Этот опыт лежит в основе программного направления."
-          />
-          <div className="company-experience-note">
-            <span>От оригинала до системы</span>
-            <p>
-              Файловый массив предприятия, документы библиотеки или
-              повторяющиеся операции торговой компании — начинаем с задачи и
-              требований к результату.
-            </p>
-            <Link className="text-link" href="/experience">
-              Смотреть выполненные проекты →
-            </Link>
-          </div>
-        </div>
-      </section>
-      <ContactBand
-        title="Какая задача стоит перед вами?"
-        text="Оцифровать фонд, привести в порядок 100 000 файлов или автоматизировать рабочий процесс. Расскажите об исходных данных и нужном результате — обсудим подход."
-      />
-    </PageShell>
+        </header>
+
+        <main>
+          <section className={styles.hero}>
+            <div className={styles.heroImage} aria-hidden="true">
+              <img
+                src={sitePath("/assets/hero-planetary-scanner.webp")}
+                alt=""
+                fetchPriority="high"
+              />
+            </div>
+            <div className={styles.heroShade} aria-hidden="true" />
+            <div className={styles.heroInner}>
+              <div className={styles.heroContent}>
+                <p className={styles.kicker}>АРХИВУМ · ИНФОРМАЦИЯ И ТЕХНОЛОГИИ</p>
+                <h1>Сохраняем ценное.<br /><em>Создаём новое.</em></h1>
+                <p className={styles.heroDescription}>
+                  Оцифровка и архивные технологии. Разработка программного
+                  обеспечения, обработка данных и автоматизация процессов.
+                </p>
+                <div className={styles.actions}>
+                  <Link className={styles.primaryButton} href="/services">Наши услуги <span aria-hidden="true">→</span></Link>
+                  <Link className={styles.outlineButton} href="/software/products">Наши разработки</Link>
+                </div>
+              </div>
+              <div className={styles.proofBar} aria-label="Наши направления и компетенции">
+                <div><span className={styles.proofIcon} aria-hidden="true">▤</span><span>Опыт<br />в оцифровке</span></div>
+                <div><span className={styles.proofIcon} aria-hidden="true">〈/〉</span><span>Собственные<br />разработки</span></div>
+                <div><span className={styles.proofIcon} aria-hidden="true">▥</span><span>Работа с большими<br />объёмами данных</span></div>
+                <div><span className={styles.proofIcon} aria-hidden="true">⚙</span><span>Комплексные<br />решения</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.directions} aria-label="Направления работы">
+            <article className={[styles.direction, styles.archiveDirection].join(" ")}>
+              <div className={styles.cardPicture} aria-hidden="true">
+                <img src={sitePath("/assets/rare-book-open.webp")} alt="" loading="lazy" />
+              </div>
+              <div className={styles.cardShade} aria-hidden="true" />
+              <div className={styles.cardContent}>
+                <p className={styles.cardKicker}>01 / ОЦИФРОВКА И АРХИВНЫЕ УСЛУГИ</p>
+                <h2>Сохраняем<br />информацию<br />для будущего</h2>
+                <p>
+                  Оцифровка документов, книг, газет, журналов, карт и архивных
+                  фондов. Упорядочивание, переплёт и работа с большими массивами.
+                </p>
+                <Link href="/services" className={styles.primaryButton}>Перейти к услугам <span aria-hidden="true">→</span></Link>
+              </div>
+            </article>
+
+            <article className={[styles.direction, styles.softwareDirection].join(" ")}>
+              <div className={styles.cardPicture} aria-hidden="true">
+                <img
+                  src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=1400&amp;q=85"
+                  alt=""
+                  loading="lazy"
+                />
+              </div>
+              <div className={styles.cardShade} aria-hidden="true" />
+              <div className={styles.cardContent}>
+                <p className={styles.cardKicker}>02 / РАЗРАБОТКА ПО И АВТОМАТИЗАЦИЯ</p>
+                <h2>Инженерные<br />решения<br />для реальных задач</h2>
+                <p>
+                  Разрабатываем прикладные программы, инструменты обработки
+                  данных и системы автоматизации. От специализированных утилит
+                  до комплексных программных решений.
+                </p>
+                <Link href="/software" className={styles.outlineButton}>Наши разработки <span aria-hidden="true">→</span></Link>
+              </div>
+            </article>
+          </section>
+
+          <section className={styles.contact} aria-labelledby="home-contact-title">
+            <h2 id="home-contact-title">Давайте обсудим ваш проект</h2>
+            <p>Подберём оптимальное решение и ответим на ваши вопросы.</p>
+            <div className={styles.contactActions}>
+              <Link className={styles.primaryButton} href="/contact">Связаться с нами <span aria-hidden="true">→</span></Link>
+              <Link className={styles.contactOutline} href="/contact">Контакты</Link>
+            </div>
+          </section>
+        </main>
+      </div>
+      <Footer />
+    </>
   );
 }
