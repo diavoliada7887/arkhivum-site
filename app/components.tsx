@@ -2,8 +2,9 @@ import { sitePath } from "./site-path";
 import Link from "next/link";
 import {
   cases,
-  serviceMenuGroups,
+  digitizationMenuGroups,
   services,
+  serviceHref,
   type CaseStudy,
 } from "./content";
 import { DesktopNav } from "./DesktopNav";
@@ -43,14 +44,11 @@ export function Header() {
                 <Link className="mobile-services-all" href="/digitization">
                   Оцифровка и архивные технологии
                 </Link>
-                {serviceMenuGroups.map((group) => (
+                {digitizationMenuGroups.map((group) => (
                   <section className="mobile-services-group" key={group.title}>
                     <p>{group.title}</p>
                     {group.services.map((service) => (
-                      <Link
-                        key={service.slug}
-                        href={`/services/${service.slug}`}
-                      >
+                      <Link key={service.slug} href={serviceHref(service)}>
                         {service.title}
                       </Link>
                     ))}
@@ -64,7 +62,11 @@ export function Header() {
               </div>
             </details>
             <Link href="/software">Данные и ПО</Link>
-            <Link href="/software/products">Собственные разработки</Link>
+            <Link href="/software/databases-integrations">
+              Базы данных и интеграции
+            </Link>
+            <Link href="/software/server-solutions">Серверные решения</Link>
+            <Link href="/software/products">Инженерное портфолио</Link>
             <Link href="/services">Все услуги оцифровки</Link>
             <Link href="/experience">Опыт и проекты</Link>
             <Link href="/equipment">Оборудование</Link>
@@ -94,7 +96,11 @@ export function Footer() {
           <Link href="/digitization">Оцифровка и архивные технологии</Link>
           <Link href="/software">Данные и программные решения</Link>
           <Link href="/services">Услуги оцифровки</Link>
-          <Link href="/software/products">Собственные разработки</Link>
+          <Link href="/software/databases-integrations">
+            Базы данных и интеграции
+          </Link>
+          <Link href="/software/server-solutions">Серверные решения</Link>
+          <Link href="/software/products">Инженерное портфолио</Link>
         </div>
         <div>
           <p className="footer-title">О компании</p>
@@ -154,7 +160,7 @@ export function ServiceCard({
   index: number;
 }) {
   return (
-    <Link className="service-card" href={`/services/${service.slug}`}>
+    <Link className="service-card" href={serviceHref(service)}>
       <span className="card-number">{String(index + 1).padStart(2, "0")}</span>
       <div>
         <p className="eyebrow">{service.eyebrow}</p>

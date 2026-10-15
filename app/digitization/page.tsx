@@ -3,10 +3,19 @@ import { DirectionNav } from "../DirectionNav";
 import { sitePath } from "../site-path";
 import Link from "next/link";
 import { ArchiveShelfLazy } from "../ArchiveShelfLazy";
-import { CaseCard, ContactBand, PageShell, SectionHeading } from "../components";
-import { cases, services } from "../content";
+import {
+  CaseCard,
+  ContactBand,
+  PageShell,
+  SectionHeading,
+} from "../components";
+import { cases, digitizationServices } from "../content";
 
-export const metadata: Metadata = { title: "Оцифровка и архивные технологии", description: "Оцифровка книг, документов, периодики и архивных фондов. Оборудование, проекты, цены и полный цикл подготовки электронных коллекций." };
+export const metadata: Metadata = {
+  title: "Оцифровка и архивные технологии",
+  description:
+    "Оцифровка книг, документов, периодики и архивных фондов. Оборудование, проекты, цены и полный цикл подготовки электронных коллекций.",
+};
 
 export default function DigitizationPage() {
   const featured = ["kronstadt", "rare-books", "shalya", "saratov"]
@@ -26,9 +35,9 @@ export default function DigitizationPage() {
               <em>Доводим до системы.</em>
             </h1>
             <p className="hero-lead">
-              Книги, газеты, карты, архивные фонды и большие документные массивы.
-              Сканируем, распознаём, упорядочиваем, создаём базы данных и
-              загружаем результат в систему заказчика.
+              Книги, газеты, карты, архивные фонды и большие документные
+              массивы. Сканируем, распознаём, упорядочиваем, создаём базы данных
+              и загружаем результат в систему заказчика.
             </p>
             <div className="button-row">
               <Link className="button" href="/contact">
@@ -92,7 +101,7 @@ export default function DigitizationPage() {
             </Link>
           </div>
           <div className="home-service-grid">
-            {services.map((service, index) => (
+            {digitizationServices.map((service, index) => (
               <Link
                 className={`home-service-card${
                   service.homeImage ? " home-service-card-photo" : ""
@@ -210,6 +219,24 @@ export default function DigitizationPage() {
         </div>
       </section>
 
+      <section className="section section-paper">
+        <div className="shell company-experience-grid">
+          <SectionHeading
+            eyebrow="Следующий этап"
+            title="После цифровых копий — данные и системы"
+            text="Оцифровку можно продолжить описанием документов, наполнением базы и подготовкой обмена с информационной системой. Эти задачи ведёт наше программное направление."
+          />
+          <div className="company-experience-note">
+            <Link className="text-link" href="/software/databases-integrations">
+              Базы данных и интеграции →
+            </Link>
+            <br />
+            <Link className="text-link" href="/software/server-solutions">
+              Хранение и серверная обработка →
+            </Link>
+          </div>
+        </div>
+      </section>
       <ContactBand
         title="Покажите материал — предложим технологию"
         text="Достаточно 5–10 характерных страниц, примерного объёма и понимания, какой результат нужен на выходе."

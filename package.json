@@ -10,11 +10,12 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "test": "npm run build && npm run verify:export",
+    "test": "npm run build && npm run verify:export && npm run test:architecture",
     "validate:artifact": "bash scripts/validate-artifact.sh",
     "lint": "eslint app",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
-    "verify:export": "python3 scripts/verify-export.py"
+    "verify:export": "python3 scripts/verify-export.py",
+    "test:architecture": "node --test tests/rendered-html.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

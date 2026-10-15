@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { sitePath } from "../site-path";
 import { ContactBand, PageShell } from "../components";
 
@@ -109,7 +110,9 @@ export default function EquipmentPage() {
         <div className="shell equipment-grid">
           {equipment.map((item, index) => (
             <article className="equipment-card" key={item.model}>
-              <div className={`equipment-photo${item.imageMode === "cover" ? " equipment-photo-cover" : ""}`}>
+              <div
+                className={`equipment-photo${item.imageMode === "cover" ? " equipment-photo-cover" : ""}`}
+              >
                 <img src={sitePath(item.image)} alt={item.imageAlt} />
                 <span className="equipment-placeholder-index">
                   {String(index + 1).padStart(2, "0")}
@@ -128,6 +131,11 @@ export default function EquipmentPage() {
                     <p>{item.tasks}</p>
                   </div>
                 </div>
+                {item.category === "Хранение данных" && (
+                  <Link className="text-link" href="/software/server-solutions">
+                    Серверное хранение и обработка как инженерное решение →
+                  </Link>
+                )}
                 <div className="equipment-tags" aria-label="Характеристики">
                   {item.features.map((feature) => (
                     <span key={feature}>{feature}</span>

@@ -1,14 +1,129 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Breadcrumbs, ContactBand, PageShell } from "../../components";
+import {
+  Breadcrumbs,
+  ContactBand,
+  PageShell,
+  SectionHeading,
+} from "../../components";
 import { DirectionNav } from "../../DirectionNav";
-import { softwareProducts } from "../content";
+import { EngineeringEntry } from "../Portfolio";
+import { softwareProducts } from "../products";
 
-export const metadata: Metadata = { title: "Собственные разработки и прикладные программы", description: "Инструменты PDF и OCR, индексация и файловые операции, прототипы автоматизации закупок и Android-приложение «Хвать»." };
+export const metadata: Metadata = {
+  title: "Инженерные решения и собственные приложения",
+  description:
+    "Контроль файловых массивов, конвейер PDF/A, извлечение реквизитов, навигация PDF, обработка изображений и мониторинг. Собственные приложения «Хвать», «Профицит» и RPG Life.",
+};
+
 export default function ProductsPage() {
-  return <PageShell><DirectionNav current="software" />
-    <section className="page-hero"><div className="shell"><Breadcrumbs items={[{ label: "Главная", href: "/" }, { label: "Данные и ПО", href: "/software" }, { label: "Разработки" }]} /><div className="page-hero-grid"><div><p className="eyebrow">04 / Практическая разработка</p><h1>Собственные инструменты и прикладные программы</h1></div><p>Часть решений используется в собственных процессах, часть проходит разработку и проверку. Здесь показываем назначение и текущий статус. Это витрина опыта; публичных загрузок и продажи лицензий пока нет.</p></div></div></section>
-    <section className="section section-paper"><div className="shell software-products-grid">{softwareProducts.map((item, i) => <article className="software-product" id={item.slug} key={item.slug}><div className="software-product-top"><span className="card-number">{String(i + 1).padStart(2, "0")}</span><span className="product-status">{item.status}</span></div><h2>{item.title}</h2><p>{item.description}</p><ul>{item.functions.map(fn => <li key={fn}>{fn}</li>)}</ul><Link className="text-link" href={item.href}>{item.slug === "hvati" ? "Уточнить состояние проекта" : "Подробнее о задачах направления"} →</Link></article>)}</div></section>
-    <ContactBand title="Нужен инструмент под ваш процесс?" text="Обсудим, можно ли использовать имеющийся подход или потребуется отдельная разработка. Состав решения, сроки и стоимость определяем после разбора задачи." />
-  </PageShell>;
+  const engineering = softwareProducts.filter((p) => p.group === "engineering");
+  const applications = softwareProducts.filter(
+    (p) => p.group === "applications",
+  );
+  return (
+    <PageShell>
+      <DirectionNav current="software" />
+      <section className="page-hero">
+        <div className="shell">
+          <Breadcrumbs
+            items={[
+              { label: "Главная", href: "/" },
+              { label: "Данные и ПО", href: "/software" },
+              { label: "Инженерное портфолио" },
+            ]}
+          />
+          <div className="page-hero-grid">
+            <div>
+              <p className="eyebrow">От задачи до работающего инструмента</p>
+              <h1>Инженерные решения и собственные приложения</h1>
+            </div>
+            <div>
+              <p className="section-lead">
+                Технологии, выросшие из реальных производственных задач.
+                Показываем, что поступает на вход, как устроена обработка и
+                какой результат можно проверить.
+              </p>
+              <nav
+                className="portfolio-local-nav"
+                aria-label="Разделы портфолио"
+              >
+                <a href="#engineering">Производственные технологии ↓</a>
+                <a href="#applications">Собственные приложения ↓</a>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section portfolio-engineering" id="engineering">
+        <div className="shell">
+          <SectionHeading
+            eyebrow="I / Производственные технологии"
+            title="Решения для файлов, документов и информации"
+            text="Готовность инструмента и возможность коммерческой поставки — разные вещи. Форму адаптации определяем после знакомства с вашей задачей."
+          />
+          {engineering.map((product, index) => (
+            <EngineeringEntry
+              key={product.slug}
+              product={product}
+              index={index}
+            />
+          ))}
+        </div>
+      </section>
+      <section className="section portfolio-applications" id="applications">
+        <div className="shell">
+          <SectionHeading
+            eyebrow="II / Прикладная разработка"
+            title="Собственные приложения и экспериментальные проекты"
+            text="Отдельные продукты показывают опыт мобильной и веб-разработки, расчётов, пользовательских сценариев и хранения состояния."
+          />
+          <div className="application-grid">
+            {applications.map((product) => (
+              <article className="application-entry" key={product.slug}>
+                <p className="eyebrow">{product.label}</p>
+                <h2>{product.title}</h2>
+                <p className="application-status">{product.status}</p>
+                <p>{product.problem}</p>
+                <ul>
+                  {product.functions.map((fn) => (
+                    <li key={fn}>{fn}</li>
+                  ))}
+                </ul>
+                <p className="engineering-cooperation">{product.cooperation}</p>
+                <Link
+                  className="text-link"
+                  href={`/software/products/${product.slug}`}
+                >
+                  О продукте и текущих границах →
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="section">
+        <div className="shell company-experience-grid">
+          <SectionHeading
+            eyebrow="Другие примеры разработки"
+            title="Дополнительные задачи — тот же инженерный подход"
+            text="В рабочем арсенале также есть инструменты обработки видео, локальной транскрибации аудио и интерактивная образовательная веб-картотека. Они дополняют компетенции, сохраняя фокус основного портфолио."
+          />
+          <div className="company-experience-note">
+            <p>
+              Публичных загрузок, магазина и готовых лицензий здесь пока нет.
+              Возможность демонстрации и адаптации обсуждаем отдельно.
+            </p>
+            <Link className="text-link" href="/contact">
+              Обсудить похожую задачу →
+            </Link>
+          </div>
+        </div>
+      </section>
+      <ContactBand
+        title="Какой процесс нужно изменить у вас?"
+        text="Обсудим исходный массив, правила и критерии приёмки. Предложим адаптацию имеющейся технологии или отдельную разработку по заданию."
+      />
+    </PageShell>
+  );
 }
