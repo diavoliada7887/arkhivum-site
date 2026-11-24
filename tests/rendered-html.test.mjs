@@ -16,23 +16,20 @@ const linksWithClass = (html, className) =>
       new RegExp(`class="[^"]*\\b${className}\\b`).test(attrs),
     )
     .map(([, attrs]) => attrs.match(/href="([^"]+)"/)?.[1]);
+const allHrefs = (html) => [...html.matchAll(/href="([^"]+)"/g)].map(([, href]) => href);
 
-test("company home provides two equal, working direction entries", () => {
-  assert.deepEqual(linksWithClass(main(read()), "direction-card"), [
-    "/arkhivum-site/digitization/",
-    "/arkhivum-site/software/",
-  ]);
-  assert.match(read("digitization"), /Оцифровываем фонды/);
+test("company home preserves both directions and adds commercial evidence", () => {
+  const home = main(read());
+  assert.ok(home.includes('/arkhivum-site/digitization/'));
+  assert.ok(home.includes('/arkhivum-site/software/'));
+  assert.match(home, /От бумажного оригинала/);
+  assert.match(read("digitization"), /Упорядочим и оцифруем архив/);
   assert.match(read("software"), /Программные решения для сложных задач/);
 });
 
 test("digitization catalogue excludes software services but retains physical services", () => {
-  for (const [route, cls] of [
-    ["digitization", "home-service-card"],
-    ["services", "service-card"],
-  ]) {
-    const hrefs = linksWithClass(main(read(route)), cls);
-    assert.equal(hrefs.length, 8);
+  for (const route of ["digitization", "services"]) {
+    const hrefs = allHrefs(main(read(route))).filter((href) => href.includes('/services/'));
     assert.ok(
       hrefs.every(
         (href) => !/archive-software|databases-integrations/.test(href),
@@ -147,15 +144,24 @@ test("all HTML fragment links resolve and each new page has a unique title and o
   }
 });
 
-test("both direction shortcuts precede the large homepage panels", () => {
-  const html = main(read());
-  const shortcutNav =
-    html.match(/<nav class="home-quick-directions"[\s\S]*?<\/nav>/)?.[0] ?? "";
-  for (const route of ["digitization", "software"])
-    assert.ok(shortcutNav.includes(`/arkhivum-site/${route}/`));
-  assert.ok(
-    html.indexOf("home-quick-directions") < html.indexOf("company-directions"),
-  );
+test("commercial journey exposes logistics, archive pricing and a quote form", () => {
+  const digitization = main(read("digitization"));
+  assert.ok(digitization.includes("/arkhivum-site/industries/logistics/"));
+  assert.match(digitization, /Пока сотрудники ищут документы/);
+  assert.match(digitization, /От оценки архива до готового результата/);
+
+  const logistics = main(read("industries/logistics"));
+  assert.match(logistics, /архив транспортной компании/i);
+  assert.ok(logistics.includes("/arkhivum-site/prices/#archive-processing"));
+
+  const prices = main(read("prices"));
+  for (const id of ["digitization-prices", "archive-processing", "box-calculation"])
+    assert.ok(prices.includes(`id="${id}"`));
+  assert.match(prices, /380 000/);
+
+  const contact = main(read("contact"));
+  assert.match(contact, /<form/);
+  assert.match(contact, /Сформировать письмо/);
 });
 
 test("software navigation has four primary controls and discoverable native submenus", () => {

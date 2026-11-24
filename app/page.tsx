@@ -80,12 +80,35 @@ export default function Home() {
             </article>
           </section>
 
+          <section className={styles.evidence} aria-labelledby="home-evidence-title">
+            <div className={styles.evidenceIntro}>
+              <p className={styles.kicker}>ОПЫТ В ЦИФРАХ</p>
+              <h2 id="home-evidence-title">
+                От бумажного оригинала — до данных, которыми можно пользоваться
+              </h2>
+              <p>
+                Работаем с единичными ценными изданиями и промышленными массивами:
+                сканируем, описываем, индексируем и передаём результат в нужную систему.
+              </p>
+              <div className={styles.evidenceLinks}>
+                <Link href="/experience">Смотреть выполненные проекты →</Link>
+                <Link href="/software/products">Смотреть разработки →</Link>
+              </div>
+            </div>
+            <div className={styles.evidenceGrid}>
+              <article><strong>≈ 1 млн</strong><span>страниц в выполненных проектах</span></article>
+              <article><strong>1730</strong><span>год самого раннего материала</span></article>
+              <article><strong>до 1 000</strong><span>страниц в час на потоке</span></article>
+              <article><strong>до 5 000</strong><span>карточек документов в месяц</span></article>
+            </div>
+          </section>
+
           <section className={styles.contact} aria-labelledby="home-contact-title">
-            <h2 id="home-contact-title">Давайте обсудим ваш проект</h2>
-            <p>Подберём оптимальное решение и ответим на ваши вопросы.</p>
+            <h2 id="home-contact-title">Рассчитаем ваш проект</h2>
+            <p>Достаточно примерного объёма, нескольких образцов и желаемого результата.</p>
             <div className={styles.contactActions}>
-              <Link className={styles.primaryButton} href="/contact">Связаться с нами <span aria-hidden="true">→</span></Link>
-              <Link className={styles.contactOutline} href="/contact">Контакты</Link>
+              <Link className={styles.primaryButton} href="/contact">Получить расчёт <span aria-hidden="true">→</span></Link>
+              <Link className={styles.contactOutline} href="/prices">Посмотреть цены</Link>
             </div>
           </section>
         </main>

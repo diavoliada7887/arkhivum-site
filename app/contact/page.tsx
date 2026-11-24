@@ -1,4 +1,5 @@
 import { PageShell } from "../components";
+import { QuoteForm } from "./QuoteForm";
 
 export default function ContactPage() {
   return (
@@ -7,12 +8,13 @@ export default function ContactPage() {
         <div className="shell contact-page-grid">
           <div>
             <p className="eyebrow">Обсудить проект</p>
-            <h1>Начнём с вашей задачи</h1>
+            <h1>Получите расчёт проекта</h1>
             <p className="contact-lead">
               Для оцифровки пришлите 5–10 характерных страниц и оценку объёма.
               Для программного решения — пример файлов или описание процесса,
               который хотите автоматизировать. Расскажите, какой результат нужен.
             </p>
+            <QuoteForm />
           </div>
           <div className="contact-card">
             <p className="eyebrow">Контакты</p>
@@ -35,12 +37,7 @@ export default function ContactPage() {
                 операции и ограничения используемых систем.
               </p>
             </div>
-            <a
-              className="button"
-              href="mailto:sale@predikt.ru?subject=Обсуждение%20проекта%20Архивум"
-            >
-              Написать нам
-            </a>
+            <a className="button" href="mailto:sale@predikt.ru?subject=Обсуждение%20проекта%20Архивум">Написать напрямую</a>
           </div>
         </div>
       </section>

@@ -1,4 +1,32 @@
 /* Landing-only styles: do not change the shared site or existing service pages. */
+.hero {
+  padding: clamp(66px, 8vw, 112px) 0 0;
+  background: #0a1b2c;
+  color: #fffdf8;
+}
+.heroKicker, .sectionKicker {
+  margin: 0 0 13px;
+  color: #d2b27c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.hero h1 {
+  max-width: 980px;
+  margin: 0;
+  color: #fffdf8;
+  font-size: clamp(48px, 6.5vw, 92px);
+  line-height: .98;
+}
+.heroLead { max-width: 780px; margin: 27px 0 0; color: rgba(255,253,248,.78); font-size: clamp(16px, 1.45vw, 21px); line-height: 1.58; }
+.heroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 21px; margin-top: 32px; }
+.heroTextLink { color: #e4c495; border-bottom: 1px solid rgba(228,196,149,.55); font-size: 13px; font-weight: 700; }
+.heroFacts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: clamp(52px, 6vw, 80px); border-top: 1px solid rgba(255,255,255,.16); }
+.heroFacts span { min-height: 100px; display: flex; align-items: center; gap: 9px; padding: 22px 0; border-right: 1px solid rgba(255,255,255,.16); color: rgba(255,253,248,.7); font-size: 13px; }
+.heroFacts span:not(:first-child) { padding-left: clamp(18px, 3vw, 42px); }
+.heroFacts span:last-child { border-right: 0; }
+.heroFacts strong { color: #fffdf8; font-family: Georgia, "Times New Roman", serif; font-size: clamp(22px, 2vw, 31px); font-weight: 400; }
 .servicesOpening {
   padding: clamp(12px, 1.8vw, 25px) 0 clamp(20px, 3vw, 38px);
   background: #0a1b2c;
@@ -66,7 +94,7 @@
   justify-content: flex-end;
   align-items: flex-start;
   width: 100%;
-  min-height: clamp(365px, 31vw, 425px);
+  min-height: clamp(275px, 23vw, 330px);
   padding: clamp(23px, 3vw, 38px);
 }
 .categoryKicker {
@@ -107,6 +135,22 @@
   letter-spacing: .025em;
 }
 .categoryAction > span { font-size: 25px; font-weight: 400; line-height: 1; }
+
+.problemSection { padding: clamp(65px, 7vw, 100px) 0; background: #f7f2e8; }
+.problemIntro { display: grid; grid-template-columns: .55fr 1.45fr; gap: 40px; align-items: start; margin-bottom: 38px; }
+.problemIntro h2, .benefitPanel h2, .workflowHeading h2 { margin: 0; color: #101d31; font-size: clamp(34px, 4vw, 58px); line-height: 1.08; }
+.problemGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #d9cfbf; background: #fffdf8; }
+.problemGrid article { min-height: 190px; padding: 25px; border-right: 1px solid #d9cfbf; }
+.problemGrid article:last-child { border-right: 0; }
+.problemGrid span { color: #b38b52; font-family: Georgia, "Times New Roman", serif; font-size: 25px; }
+.problemGrid p { margin: 55px 0 0; color: #101d31; font-size: 16px; line-height: 1.45; }
+.benefitPanel { display: grid; grid-template-columns: .9fr 1.1fr; gap: 70px; margin-top: 18px; padding: clamp(32px, 4vw, 54px); background: #101d31; color: #fffdf8; }
+.benefitPanel h2 { color: #fffdf8; }
+.benefitPanel ul { margin: 0; padding: 0; list-style: none; }
+.benefitPanel li { padding: 17px 0 17px 31px; border-bottom: 1px solid rgba(255,255,255,.16); position: relative; color: rgba(255,253,248,.84); }
+.benefitPanel li::before { position: absolute; left: 0; color: #d2b27c; content: "✓"; }
+.industryLink { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; padding: 24px 0 0; color: #706b64; font-size: 14px; }
+.industryLink a { color: #101d31; border-bottom: 1px solid #b38b52; font-weight: 700; }
 
 .serviceDirectory { background: var(--cream); }
 .serviceGroup {
@@ -195,16 +239,38 @@
 .otherTask a { color: var(--navy); font-weight: 700; border-bottom: 1px solid var(--brass); }
 .otherTask a:hover { color: var(--brass); }
 
+.workflowSection { padding: clamp(65px, 7vw, 100px) 0; background: #f7f2e8; }
+.workflowHeading { display: grid; grid-template-columns: .55fr 1.45fr; gap: 40px; margin-bottom: 40px; }
+.workflowGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #d9cfbf; border-left: 1px solid #d9cfbf; }
+.workflowGrid article { min-height: 220px; padding: 28px; border-right: 1px solid #d9cfbf; border-bottom: 1px solid #d9cfbf; background: #fffdf8; }
+.workflowGrid span { color: #b38b52; font-family: Georgia, "Times New Roman", serif; font-size: 28px; }
+.workflowGrid h3 { margin: 45px 0 9px; color: #101d31; font-size: 23px; }
+.workflowGrid p { margin: 0; color: #706b64; font-size: 14px; line-height: 1.55; }
+
 @media (max-width: 780px) {
+  .heroFacts { grid-template-columns: 1fr; }
+  .heroFacts span, .heroFacts span:not(:first-child) { min-height: 0; padding: 16px 0; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.16); }
+  .problemIntro, .benefitPanel, .workflowHeading { grid-template-columns: 1fr; gap: 20px; }
+  .problemGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .problemGrid article:nth-child(2) { border-right: 0; }
+  .problemGrid article:nth-child(-n+2) { border-bottom: 1px solid #d9cfbf; }
+  .workflowGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .categoryGrid { grid-template-columns: 1fr; }
-  .categoryContent { min-height: 355px; }
+  .categoryContent { min-height: 300px; }
   .categoryTitle { font-size: clamp(29px, 5vw, 39px); }
   .categoryDescription { font-size: 14px; }
   .groupServiceGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) {
+  .hero { padding-top: 52px; }
+  .hero h1 { font-size: 47px; }
+  .heroFacts strong { min-width: 112px; }
+  .problemGrid, .workflowGrid { grid-template-columns: 1fr; }
+  .problemGrid article, .problemGrid article:nth-child(2) { min-height: 150px; border-right: 0; border-bottom: 1px solid #d9cfbf; }
+  .problemGrid p { margin-top: 30px; }
+  .benefitPanel { padding: 28px 22px; }
   .categoryGrid { gap: 10px; }
-  .categoryContent { min-height: 330px; padding: 23px; }
+  .categoryContent { min-height: 275px; padding: 23px; }
   .categoryKicker { font-size: 10px; }
   .categoryTitle { font-size: 30px; }
   .categoryDescription { font-size: 13px; }

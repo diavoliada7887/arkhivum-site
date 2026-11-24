@@ -53,6 +53,29 @@ const serviceGroups = [
   },
 ] as const;
 
+const archiveProblems = [
+  "Нужный договор или накладная теряется среди папок",
+  "Срочный запрос отвлекает сотрудников от основной работы",
+  "Бумажный архив растёт и занимает всё больше места",
+  "Документы есть, но быстро найти и проверить их невозможно",
+];
+
+const archiveBenefits = [
+  "Поиск по реквизитам, датам и содержанию",
+  "Понятная структура бумажного и цифрового архива",
+  "Сотрудники не тратят рабочее время на ручной разбор",
+  "Цифровые копии на случай утраты оригиналов",
+];
+
+const workSteps = [
+  ["01", "Согласуем состав", "Определим объём, результат и технологию."],
+  ["02", "Примем по описи", "Зафиксируем состав переданных документов."],
+  ["03", "Организуем доступ", "Допускаем к материалам только проектную команду."],
+  ["04", "Обработаем архив", "Разберём, отсканируем, проиндексируем и проверим."],
+  ["05", "Оформим результат", "Подготовим дела, файлы, базу и сопроводительные акты."],
+  ["06", "Передадим заказчику", "Вернём оригиналы и передадим готовый цифровой массив."],
+] as const;
+
 export default function DigitizationPage() {
   const featured = ["kronstadt", "rare-books", "shalya", "saratov"]
     .map((slug) => cases.find((item) => item.slug === slug))
@@ -61,11 +84,28 @@ export default function DigitizationPage() {
   return (
     <PageShell>
       <DirectionNav current="digitization" />
+      <section className={styles.hero} aria-labelledby="digitization-heading">
+        <div className="shell">
+          <p className={styles.heroKicker}>Оцифровка и архивные технологии</p>
+          <h1 id="digitization-heading">Упорядочим и оцифруем архив</h1>
+          <p className={styles.heroLead}>
+            Создадим управляемый цифровой массив: нужные документы находятся
+            быстрее, сотрудники занимаются основной работой, а оригиналы
+            сохраняют установленный порядок.
+          </p>
+          <div className={styles.heroActions}>
+            <Link className="button button-light" href="/contact">Рассчитать стоимость</Link>
+            <Link className={styles.heroTextLink} href="/prices">Посмотреть тарифы →</Link>
+          </div>
+          <div className={styles.heroFacts} aria-label="Ключевые показатели">
+            <span><strong>≈ 1 млн</strong> страниц в проектах</span>
+            <span><strong>до 1 000</strong> страниц в час</span>
+            <span><strong>по всей России</strong> с выездом к заказчику</span>
+          </div>
+        </div>
+      </section>
       <section className={styles.servicesOpening} aria-labelledby="digitization-heading">
         <div className="shell">
-          <h1 className={styles.visuallyHidden} id="digitization-heading">
-            Оцифровка и архивные технологии
-          </h1>
           <nav className={styles.categoryGrid} aria-label="Выберите свою задачу">
             {digitizationTasks.map((entry) => (
               <a className={styles.categoryCard} href={`#${entry.id}`} key={entry.id}>
@@ -87,6 +127,33 @@ export default function DigitizationPage() {
               </a>
             ))}
           </nav>
+        </div>
+      </section>
+
+      <section className={styles.problemSection} aria-labelledby="archive-problem-title">
+        <div className="shell">
+          <div className={styles.problemIntro}>
+            <p className={styles.sectionKicker}>Когда архив мешает работе</p>
+            <h2 id="archive-problem-title">Пока сотрудники ищут документы, их основная работа ждёт</h2>
+          </div>
+          <div className={styles.problemGrid}>
+            {archiveProblems.map((item, index) => (
+              <article key={item}><span>0{index + 1}</span><p>{item}</p></article>
+            ))}
+          </div>
+          <div className={styles.benefitPanel}>
+            <div>
+              <p className={styles.sectionKicker}>Что получит компания</p>
+              <h2>Не просто сканы, а рабочая система документов</h2>
+            </div>
+            <ul>
+              {archiveBenefits.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+          <div className={styles.industryLink}>
+            <span>Отдельное решение для перевозчиков и экспедиторов</span>
+            <Link href="/industries/logistics">Архивы транспортных компаний →</Link>
+          </div>
         </div>
       </section>
 
@@ -185,6 +252,24 @@ export default function DigitizationPage() {
                 </p>
               </div>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.workflowSection} aria-labelledby="workflow-title">
+        <div className="shell">
+          <div className={styles.workflowHeading}>
+            <p className={styles.sectionKicker}>Порядок работы</p>
+            <h2 id="workflow-title">От оценки архива до готового результата</h2>
+          </div>
+          <div className={styles.workflowGrid}>
+            {workSteps.map(([number, title, text]) => (
+              <article key={number}>
+                <span>{number}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
