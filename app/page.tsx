@@ -18,13 +18,6 @@ export default function Home() {
 
         <main>
           <section className={styles.hero}>
-            <div className={styles.heroImage} aria-hidden="true">
-              <img
-                src={sitePath("/assets/hero-planetary-scanner.webp")}
-                alt=""
-                fetchPriority="high"
-              />
-            </div>
             <div className={styles.heroShade} aria-hidden="true" />
             <div className={styles.heroInner}>
               <div className={styles.heroContent}>
