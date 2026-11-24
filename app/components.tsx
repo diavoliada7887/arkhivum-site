@@ -30,7 +30,7 @@ export function Header() {
         <Brand />
         <DesktopNav />
         <Link className="button button-small" href="/contact">
-          Обсудить проект
+          Рассчитать проект
         </Link>
         <details className="mobile-nav">
           <summary aria-label="Открыть меню">Меню</summary>
@@ -44,6 +44,9 @@ export function Header() {
                 <Link className="mobile-services-all" href="/digitization">
                   Оцифровка и архивные технологии
                 </Link>
+                <Link href="/industries/logistics">
+                  Для транспортных компаний
+                </Link>
                 {digitizationTasks.map((task) => (
                   <section className="mobile-services-group" key={task.id}>
                     <Link href={`/digitization/#${task.id}`}>
@@ -54,17 +57,11 @@ export function Header() {
               </div>
             </details>
             <Link href="/software">Данные и ПО</Link>
-            <Link href="/software/databases-integrations">
-              Базы данных и интеграции
-            </Link>
-            <Link href="/software/server-solutions">Серверные решения</Link>
             <Link href="/software/products">Инженерное портфолио</Link>
-            <Link href="/services">Все услуги оцифровки</Link>
             <Link href="/experience">Опыт и проекты</Link>
-            <Link href="/equipment">Оборудование</Link>
-            <Link href="/about">О компании</Link>
             <Link href="/prices">Цены</Link>
-            <Link href="/contact">Обсудить проект</Link>
+            <Link href="/about">О компании</Link>
+            <Link href="/contact">Получить расчёт</Link>
           </div>
         </details>
       </div>
@@ -88,6 +85,7 @@ export function Footer() {
           <Link href="/digitization">Оцифровка и архивные технологии</Link>
           <Link href="/software">Данные и программные решения</Link>
           <Link href="/services">Услуги оцифровки</Link>
+          <Link href="/industries/logistics">Для транспортных компаний</Link>
           <Link href="/software/databases-integrations">
             Базы данных и интеграции
           </Link>
@@ -213,7 +211,7 @@ export function ContactBand({
           <p>{text}</p>
         </div>
         <Link className="button button-light" href="/contact">
-          Обсудить задачу
+          Получить расчёт
         </Link>
       </div>
     </section>

@@ -20,7 +20,7 @@ export function HomeSoftwareVisual() {
           <div><span>02</span><code>&nbsp;</code></div>
           <div><span>03</span><code><b>def</b> <em>collect_files</em>(root: Path):</code></div>
           <div><span>04</span><code>&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b> <em>sorted</em>(</code></div>
-          <div><span>05</span><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p <b>for</b> p <b>in</b> root.rglob(<strong>"*"</strong>)</code></div>
+          <div><span>05</span><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p <b>for</b> p <b>in</b> root.rglob(<strong>&quot;*&quot;</strong>)</code></div>
           <div><span>06</span><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b> p.is_file()</code></div>
           <div><span>07</span><code>&nbsp;&nbsp;&nbsp;&nbsp;)</code></div>
         </div>

@@ -67,6 +67,9 @@ export function DesktopNav() {
             <b aria-hidden="true">→</b>
           </Link>
           <div className="direction-menu-links">
+            <Link href="/industries/logistics" onClick={closeServices}>
+              Для транспортных компаний
+            </Link>
             <Link href="/services" onClick={closeServices}>
               Все услуги
             </Link>
@@ -98,11 +101,11 @@ export function DesktopNav() {
       <Link href="/experience" onClick={closeServices}>
         Опыт и проекты
       </Link>
+      <Link href="/prices" onClick={closeServices}>
+        Цены
+      </Link>
       <Link href="/about" onClick={closeServices}>
         О компании
-      </Link>
-      <Link href="/contact" onClick={closeServices}>
-        Контакты
       </Link>
     </nav>
   );

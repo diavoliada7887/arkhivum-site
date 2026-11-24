@@ -67,6 +67,13 @@ const otherPrices = [
   },
 ];
 
+const archiveTiers = [
+  { name: "Цифра", price: "от 15 ₽", items: ["Оцифровка", "База данных"] },
+  { name: "Порядок", price: "от 20 ₽", items: ["Оцифровка", "База данных", "Нумерация"] },
+  { name: "Архив под ключ", price: "от 25 ₽", items: ["Оцифровка", "База данных", "Нумерация", "Упорядочивание", "Переплёт"] },
+  { name: "Максимум", price: "от 30 ₽", items: ["Полный цикл", "Расширенная база", "Метаданные и теги"] },
+] as const;
+
 export default function PricesPage() {
   return (
     <PageShell>
@@ -83,7 +90,15 @@ export default function PricesPage() {
         </div>
       </section>
 
-      <section className="section">
+      <nav className="price-jump-nav" aria-label="Разделы цен">
+        <div className="shell">
+          <a href="#digitization-prices">Оцифровка</a>
+          <a href="#archive-processing">Архивная обработка</a>
+          <a href="#box-calculation">Расчёт за коробку</a>
+        </div>
+      </nav>
+
+      <section className="section" id="digitization-prices">
         <div className="shell">
           <div className="section-heading">
             <p className="eyebrow">Документы A4</p>
@@ -97,6 +112,74 @@ export default function PricesPage() {
                 <b role="cell">{row.price}</b>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-paper archive-prices" id="archive-processing">
+        <div className="shell">
+          <div className="section-heading archive-price-heading">
+            <div>
+              <p className="eyebrow">Комплексная архивная обработка</p>
+              <h2>Тариф зависит от состава работ</h2>
+            </div>
+            <p className="section-lead">
+              Здесь цена за лист включает не только сканирование. Чем сложнее
+              исходный массив и подробнее будущая база, тем больше операций входит в проект.
+            </p>
+          </div>
+          <div className="archive-tier-grid">
+            {archiveTiers.map((tier) => (
+              <article key={tier.name}>
+                <h3>{tier.name}</h3>
+                <strong>{tier.price}<small> / лист A4</small></strong>
+                <ul>
+                  {tier.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+          <div className="archive-price-notes">
+            <article>
+              <span>Предварительный осмотр и сортировка</span>
+              <strong>от 50 000 ₽</strong>
+              <p>Не оплачивается отдельно, если документы переданы предварительно отсортированными.</p>
+            </article>
+            <article>
+              <span>Листы, выделенные к уничтожению</span>
+              <strong>5 ₽ / лист</strong>
+              <p>Полистный осмотр, включение в акт, согласование и подготовка к утилизации.</p>
+            </article>
+          </div>
+          <div className="calculation-example">
+            <div>
+              <p className="eyebrow">Пример расчёта</p>
+              <h3>20 000 несортированных листов</h3>
+              <p>После осмотра: 10 000 листов к уничтожению и 10 000 к сохранению. Тариф «Архив под ключ».</p>
+            </div>
+            <dl>
+              <div><dt>Осмотр и сортировка</dt><dd>80 000 ₽</dd></div>
+              <div><dt>Документы к уничтожению</dt><dd>50 000 ₽</dd></div>
+              <div><dt>Сохраняемые документы</dt><dd>250 000 ₽</dd></div>
+              <div><dt>Итого</dt><dd>380 000 ₽</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section className="section box-prices" id="box-calculation">
+        <div className="shell box-price-grid">
+          <div>
+            <p className="eyebrow">Альтернативный расчёт</p>
+            <h2>Стоимость за коробку</h2>
+            <p className="section-lead">
+              Удобный способ заранее оценить бюджет, если точное количество листов неизвестно.
+            </p>
+          </div>
+          <div className="box-options">
+            <article><span>до 2 500 листов</span><strong>от 50 000 ₽</strong></article>
+            <article><span>до 5 000 листов</span><strong>от 90 000 ₽</strong></article>
+            <p>В расчёт могут входить осмотр, сортировка, отбор, акт, оцифровка сохраняемых документов и база данных.</p>
           </div>
         </div>
       </section>
